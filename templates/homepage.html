@@ -1,0 +1,535 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Removed -->
+
+<!-- Promotions Carousel (Premium Infinite Slider) -->
+{% if promotions %}
+<section class="promo-carousel-container">
+    <div class="promo-track-wrapper">
+        <div class="promo-track" id="promoTrack">
+            <!-- Slides will be injected/cloned by JS for infinite loop, but we render initial here -->
+            {% for promo in promotions %}
+            <div class="promo-slide" data-index="{{ forloop.counter0 }}">
+                <a href="{{ promo.redirect_url|default:'#' }}" class="promo-link" {% if not promo.redirect_url %}style="cursor: default;" onclick="return false;"{% endif %}>
+                    <div class="promo-image-wrapper">
+                        <img src="{{ promo.image_url }}" alt="{{ promo.title|default:'Promotion' }}" class="promo-img">
+                        <div class="promo-overlay">
+                            <div class="promo-content">
+                                {% if promo.subtitle %}
+                                <span class="promo-subtitle">{{ promo.subtitle }}</span>
+                                {% endif %}
+                                {% if promo.title %}
+                                <h2 class="promo-title">{{ promo.title }}</h2>
+                                {% endif %}
+                                {% if promo.redirect_url %}
+                                <span class="promo-cta">Explore Now <i class="fa-solid fa-arrow-right"></i></span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <button class="promo-nav prev" id="promoPrev"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="promo-nav next" id="promoNext"><i class="fa-solid fa-chevron-right"></i></button>
+    
+    <!-- Dots -->
+    <div class="promo-dots" id="promoDots">
+        {% for promo in promotions %}
+        <button class="promo-dot {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}"></button>
+        {% endfor %}
+    </div>
+</section>
+
+<style>
+/* 1. Layout & Size */
+.promo-carousel-container {
+    position: relative;
+    width: 100%;
+    margin: 40px 0;
+    overflow: hidden;
+    /* Desktop Height */
+    height: 450px; 
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+@media (max-width: 1024px) {
+    .promo-carousel-container { height: 350px; margin: 30px 0; }
+}
+@media (max-width: 768px) {
+    .promo-carousel-container { height: 280px; margin: 24px 0; border-radius: 0; }
+}
+
+/* 2. Track & Slides */
+.promo-track-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+.promo-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%; /* Will vary based on slide count */
+}
+.promo-slide {
+    flex: 0 0 100%; /* Full width */
+    height: 100%;
+    position: relative;
+}
+.promo-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+}
+.promo-image-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.promo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures cinematic fill */
+    object-position: center;
+}
+
+/* 3. Content Overlay (Premium Styling) */
+.promo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%);
+    display: flex;
+    align-items: center;
+    padding-left: 80px;
+}
+@media (max-width: 768px) {
+    .promo-overlay { padding-left: 24px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); align-items: flex-end; padding-bottom: 40px; }
+}
+
+.promo-content {
+    color: white;
+    max-width: 500px;
+    opacity: 0; 
+    transform: translateY(20px);
+    transition: all 0.6s ease 0.3s; /* Animate in */
+}
+/* Active slide logic handled by CSS or JS class */
+.promo-slide.active-view .promo-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.promo-subtitle {
+    display: block;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+.promo-title {
+    font-size: 42px;
+    line-height: 1.1;
+    font-family: 'Playfair Display', serif; /* Or var(--font-heading) */
+    margin-bottom: 24px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+@media (max-width: 768px) { .promo-title { font-size: 28px; margin-bottom: 16px; } }
+
+.promo-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 24px;
+    background: white;
+    color: #1a1a1a;
+    border-radius: 4px; /* Slight round */
+    transition: transform 0.2s;
+}
+.promo-cta:hover { transform: translateX(5px); }
+
+/* 4. Navigation */
+.promo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #1a1a1a;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.2s;
+    z-index: 10;
+}
+.promo-carousel-container:hover .promo-nav { opacity: 1; }
+.promo-nav:hover { background: white; transform: translateY(-50%) scale(1.1); }
+.prev { left: 24px; }
+.next { right: 24px; }
+@media (max-width: 768px) { .promo-nav { display: none; } } /* Swipe only on mobile */
+
+.promo-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+.promo-dot {
+    width: 30px;
+    height: 3px;
+    background: rgba(255,255,255,0.4);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.promo-dot.active { background: white; }
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const track = document.getElementById('promoTrack');
+    const slides = Array.from(track.children);
+    const nextBtn = document.getElementById('promoNext');
+    const prevBtn = document.getElementById('promoPrev');
+    const dots = Array.from(document.querySelectorAll('.promo-dot'));
+    if (slides.length === 0) return;
+
+    let currentIndex = 1; // Start at 1 because of clone
+    let isTransitioning = false;
+    let autoPlayTimer;
+    const intervalTime = 5000;
+
+    // Clone First and Last slides for infinite loop
+    const firstClone = slides[0].cloneNode(true);
+    const lastClone = slides[slides.length - 1].cloneNode(true);
+    
+    firstClone.id = 'first-clone';
+    lastClone.id = 'last-clone';
+    
+    track.appendChild(firstClone);
+    track.insertBefore(lastClone, slides[0]);
+
+    const allSlides = document.querySelectorAll('.promo-slide'); // Re-query with clones
+    
+    // Initial Position (offset by 1 clone)
+    track.style.transform = `translateX(-100%)`;
+    // Activate first real slide content
+    slides[0].classList.add('active-view');
+
+    function updateSlide(index, transition = true) {
+        isTransitioning = true;
+        if (transition) {
+            track.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+        } else {
+            track.style.transition = 'none';
+        }
+        track.style.transform = `translateX(-${index * 100}%)`;
+
+        // Update active class for animation
+        allSlides.forEach(s => s.classList.remove('active-view'));
+        // The logic for active-view needs to map clone index to real index
+        // index 0 = last clone (real last)
+        // index 1 = real first
+        // index len-2 = real last
+        // index len-1 = first clone (real first)
+        
+        // Simple visual active update
+        if (allSlides[index]) allSlides[index].classList.add('active-view');
+
+        // Update Dots
+        let realIndex = index - 1;
+        if (realIndex < 0) realIndex = slides.length - 1;
+        if (realIndex >= slides.length) realIndex = 0;
+        
+        dots.forEach(d => d.classList.remove('active'));
+        if (dots[realIndex]) dots[realIndex].classList.add('active');
+    }
+
+    track.addEventListener('transitionend', () => {
+        isTransitioning = false;
+        if (allSlides[currentIndex].id === 'last-clone') {
+            track.style.transition = 'none';
+            currentIndex = allSlides.length - 2;
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+        if (allSlides[currentIndex].id === 'first-clone') {
+            track.style.transition = 'none';
+            currentIndex = 1;
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+    });
+
+    function nextSlide() {
+        if (isTransitioning) return;
+        currentIndex++;
+        updateSlide(currentIndex);
+    }
+
+    function prevSlide() {
+        if (isTransitioning) return;
+        currentIndex--;
+        updateSlide(currentIndex);
+    }
+
+    // Auto Play
+    function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayTimer = setInterval(nextSlide, intervalTime);
+    }
+    function stopAutoPlay() {
+        clearInterval(autoPlayTimer);
+    }
+
+    // Event Listeners
+    nextBtn.addEventListener('click', () => {
+        nextSlide();
+        startAutoPlay(); // Reset timer
+    });
+    prevBtn.addEventListener('click', () => {
+        prevSlide();
+        startAutoPlay();
+    });
+
+    // Dots
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+             if (isTransitioning) return;
+             currentIndex = i + 1; // +1 for clone offset
+             updateSlide(currentIndex);
+             startAutoPlay();
+        });
+    });
+
+    // Hover Pause
+    const container = document.querySelector('.promo-carousel-container');
+    container.addEventListener('mouseenter', stopAutoPlay);
+    container.addEventListener('mouseleave', startAutoPlay);
+
+    // Touch / Swipe
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    container.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        stopAutoPlay();
+    });
+    
+    container.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+        startAutoPlay();
+    });
+
+    function handleSwipe() {
+        if (touchEndX < touchStartX - 50) nextSlide();
+        if (touchEndX > touchStartX + 50) prevSlide();
+    }
+
+    // Init
+    startAutoPlay();
+});
+</script>
+{% endif %}
+
+<!-- Featured Collections (Static Fallback or could be dynamic) -->
+<section class="section">
+    <div class="section-header">
+        <h2>Featured Collections</h2>
+    </div>
+    <div class="collection-grid">
+        <div class="collection-card">
+            <img src="/static/img/collection1.jpg" alt="Woman in silk dress"> <!-- Placeholder path -->
+            <div class="collection-overlay">
+                <a href="/collection/elegance" class="btn-overlay">View Collection</a>
+            </div>
+        </div>
+        <div class="collection-card">
+            <img src="/static/img/collection2.jpg" alt="Minimalist dining">
+            <div class="collection-overlay">
+                <a href="/collection/home" class="btn-overlay">View Collection</a>
+            </div>
+        </div>
+        <div class="collection-card">
+            <img src="/static/img/collection3.jpg" alt="Travel accessories">
+            <div class="collection-overlay">
+                <a href="/collection/travel" class="btn-overlay">View Collection</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Shop by Categories -->
+<section class="section">
+    <div class="section-header">
+        <h2>Shop by Categories</h2>
+    </div>
+    <div class="category-pills">
+        {% for cat in categories %}
+        <a href="/products/?category={{ cat.slug }}" class="cat-pill">
+            <!-- Dynamic Icon or Default -->
+            <svg class="cat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+            </svg>
+            <span class="cat-label">{{ cat.name }} ({{ cat.product_count }})</span>
+        </a>
+        {% empty %}
+        <p style="color: #999; width: 100%; text-align: center;">No categories found.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Mid-Page Banner -->
+{% if main_banner %}
+<section class="section">
+    <div class="promo-banner" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{{ main_banner.image_url }}');">
+        <h2 style="font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 16px; font-family: 'Playfair Display', serif;">{{ main_banner.title|default:'Special Offer' }}</h2>
+        <p style="font-size: 1.1rem; font-weight: 300; margin-bottom: 24px; max-width: 600px;">{{ main_banner.subtitle }}</p>
+        {% if main_banner.redirect_url %}
+        <a href="{{ main_banner.redirect_url }}" class="btn btn-primary" style="border: none; background: #fff; color: #1a1a1a; padding: 12px 32px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">{{ main_banner.cta_text }}</a>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Best Sellers -->
+<section class="section">
+    <div class="section-header">
+        <h2>Best-Sellers</h2>
+    </div>
+    <div class="product-grid">  
+        {% for product in best_sellers %}
+        <a href="/products/{{ product.slug|default:product.id }}" class="product-card" style="position: relative;">
+            <div class="product-image">
+                {% if product.image_urls %}
+                <img src="{{ product.image_urls.0 }}" alt="{{ product.name }}" style="{{ product.stock_quantity|yesno:',opacity: 0.6;' }}">
+                {% else %}
+                <img src="/static/img/product1.jpg" alt="Product" style="{{ product.stock_quantity|yesno:',opacity: 0.6;' }}">
+                {% endif %}
+                
+                {% if product.stock_quantity == 0 %}
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                    Out of Stock
+                </div>
+                {% elif product.stock_quantity <= 100 %}
+                <div style="position: absolute; top: 10px; left: 10px; background: #ef6c00; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">
+                    Only {{ product.stock_quantity }} Left
+                </div>
+                {% endif %}
+            </div>
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price-row">
+                <div class="price">₹{{ product.base_price }}</div>
+                {% if product.stock_quantity > 0 %}
+                <button class="btn-add-mini" title="Add to Cart" data-product-id="{{ product.id }}">+</button>
+                {% else %}
+                <button class="btn-add-mini" style="background: #ccc; cursor: not-allowed;" disabled title="Out of Stock">x</button>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <!-- Fallback if no products -->
+        <div class="product-card">
+            <div class="product-image">
+                <img src="/static/img/product1.jpg" alt="Table Lamp">
+            </div>
+            <div class="product-name">The Artisan Table Lamp</div>
+            <div class="product-price-row">
+                <div class="price">₹18,500</div>
+                <button class="btn-add-mini" title="Add to Cart">+</button>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">
+                <img src="/static/img/product2.jpg" alt="Cashmere Throw">
+            </div>
+            <div class="product-name">Silk Cashmere Throw</div>
+            <div class="product-price-row">
+                <div class="price">₹24,000</div>
+                <button class="btn-add-mini" title="Add to Cart">+</button>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">
+                <img src="/static/img/product3.jpg" alt="Leather Bag">
+            </div>
+            <div class="product-name">Premium Leather Weekender</div>
+            <div class="product-price-row">
+                <div class="price">₹45,000</div>
+                <button class="btn-add-mini" title="Add to Cart">+</button>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">
+                <img src="/static/img/product4.jpg" alt="Vase Set">
+            </div>
+            <div class="product-name">Sculptural Vase Set</div>
+            <div class="product-price-row">
+                <div class="price">₹9,200</div>
+                <button class="btn-add-mini" title="Add to Cart">+</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Trust Section -->
+<section class="trust-section">
+    <div class="trust-item">
+        <div class="trust-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M6 3h12l4 6-10 13L2 9z"></path>
+            </svg>
+        </div>
+        <div class="trust-label">Exceptional Quality</div>
+    </div>
+    <div class="trust-item">
+        <div class="trust-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+        </div>
+        <div class="trust-label">Global Delivery</div>
+    </div>
+    <div class="trust-item">
+        <div class="trust-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+        </div>
+        <div class="trust-label">Secure Checkout</div>
+    </div>
+    <div class="trust-item">
+        <div class="trust-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+        </div>
+        <div class="trust-label">24/7 Support</div>
+    </div>
+</section>
+{% endblock %}

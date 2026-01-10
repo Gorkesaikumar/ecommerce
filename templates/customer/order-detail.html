@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Details | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dashboard-layout">
+        <!-- Reusing Admin Sidebar for now or need a Customer Sidebar? 
+             Wait, Customer Dashboard used 'customer/sidebar.html'.
+             Let's use that.
+        -->
+        {% include 'customer/sidebar.html' %}
+
+        <main>
+             <div style="margin-bottom: 24px;">
+                <a href="/account/orders" style="font-size: 14px; color: var(--text-secondary); display: inline-block; margin-bottom: 12px;">← Back to Orders</a>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-family: var(--font-heading); margin: 0;">Order #{{ order.id }}</h2>
+                    <span class="badge {% if order.status == 'DELIVERED' %}badge-success{% elif order.status == 'CANCELLED' %}badge-danger{% else %}badge-neutral{% endif %}">{{ order.get_status_display }}</span>
+                </div>
+            </div>
+
+            <div style="border: 1px solid #EBEBEB; border-radius: 8px; overflow: hidden; margin-bottom: 24px; background: #FFF;">
+                <div style="padding: 24px; background: #FAFAFA; border-bottom: 1px solid #EBEBEB; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Items Ordered</div>
+                <div style="padding: 0 24px;">
+                    {% for item in order.items.all %}
+                    <div style="display: flex; gap: 24px; padding: 24px 0; border-bottom: 1px solid #F5F5F5;">
+                        <div style="width: 80px; height: 80px; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid #eee;">
+                             {% if item.product.image_urls %}
+                             <img src="{{ item.product.image_urls.0 }}" style="width: 100%; height: 100%; object-fit: contain;">
+                             {% else %}
+                             <div style="width: 100%; height: 100%; background: #f4f4f4;"></div>
+                             {% endif %}
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div style="font-weight: 500; margin-bottom: 4px;">{{ item.product_snapshot.name }}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">SKU: {{ item.product_snapshot.code }}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Size: {{ item.length }}x{{ item.breadth }}x{{ item.height }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 600;">₹{{ item.unit_price }}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">Qty: {{ item.quantity }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div style="padding: 24px; background: #FAFAFA; border-top: 1px solid #EBEBEB;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Subtotal</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 18px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #EBEBEB;">
+                        <span>Grand Total</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Info Card -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                 <div class="stat-card" style="padding: 24px;">
+                    <h4 style="margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-secondary);">Shipping Address</h4>
+                    <div style="color: var(--text-primary); font-size: 14px; line-height: 1.6;">
+                        {% if order.shipping_address %}
+                        {{ order.shipping_address.line1 }}<br>
+                        {{ order.shipping_address.city }} - {{ order.shipping_address.zip_code }}<br>
+                        {{ order.shipping_address.state }}
+                        {% else %}
+                        Address not available
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if order.status == 'DELIVERED' %}
+                <div class="stat-card" style="padding: 24px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <h4 style="margin-bottom: 16px; font-size: 14px;">Need Help?</h4>
+                    <a href="/support" class="btn btn-secondary" style="width: 100%;">Contact Support</a>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</section>
+{% endblock %}

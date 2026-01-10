@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login | Aethereal{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height: 85vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(to bottom, #fdfbf7, #f5f0e6);">
+    <div style="width: 100%; max-width: 440px; text-align: center;">
+        <h1 style="font-family: 'Playfair Display', serif; margin-bottom: 12px; font-size: 38px; color: #2C2420;">Admin Portal</h1>
+        <p style="color: #666; margin-bottom: 48px; font-size: 15px; letter-spacing: 0.5px;">Secure access for Aethereal administrators</p>
+        
+        <div style="background: white; padding: 60px 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); text-align: left; border: 1px solid rgba(0,0,0,0.02);">
+            <form id="adminLoginForm">
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999;">Email Address</label>
+                    <input type="email" name="email" required placeholder="name@aethereal.com" style="width: 100%; padding: 18px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 16px; background: #fafafa; transition: all 0.3s ease;">
+                </div>
+                
+                <div style="margin-bottom: 48px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999;">Password</label>
+                    <input type="password" name="password" required placeholder="••••••••••••" style="width: 100%; padding: 18px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 16px; background: #fafafa;">
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; padding: 20px; background: #2C2420; color: white; font-size: 15px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(44, 36, 32, 0.2);">
+                    Access Dashboard
+                </button>
+            </form>
+        </div>
+        <div style="margin-top: 40px;">
+            <a href="/" style="color: #999; text-decoration: none; font-size: 13px; border-bottom: 1px solid transparent; transition: border 0.3s;">
+                &larr; Return to Store
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const btn = form.querySelector('button');
+        
+        btn.disabled = true;
+        btn.innerHTML = 'Authenticating...';
+        
+        // Helper to get cookie (re-implementing locally since it might not be global)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch('/api/v1/auth/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            });
+
+            if (response.ok) {
+                if(window.showToast) window.showToast('Login successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/admin/dashboard';
+                }, 1000);
+            } else {
+                const data = await response.json();
+                const msg = data.detail || data.error || 'Authentication failed';
+                if(window.showToast) window.showToast(msg, true);
+                else alert(msg);
+                
+                btn.disabled = false;
+                btn.innerHTML = 'Access Dashboard';
+            }
+        } catch (error) {
+            console.error(error);
+            if(window.showToast) window.showToast('System error. Check console.', true);
+            btn.disabled = false;
+            btn.innerHTML = 'Access Dashboard';
+        }
+    });
+</script>
+{% endblock %}

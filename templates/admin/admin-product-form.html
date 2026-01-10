@@ -1,0 +1,366 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Add Product | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 1000px; margin: 0 auto; padding-bottom: 80px;">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <div>
+            <a href="/admin/products" style="color: #666; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Products
+            </a>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #1a1a1a; margin: 0;">Add New Product</h2>
+        </div>
+        <div style="display: flex; gap: 12px;">
+             <button onclick="window.location.href='/admin/products'" style="padding: 12px 24px; border: 1px solid #ddd; background: white; border-radius: 8px; font-weight: 500; cursor: pointer;">Cancel</button>
+             <button onclick="submitProduct()" style="padding: 12px 32px; background: #2C2420; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-check"></i> Create Product
+             </button>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+        
+        <!-- Left Column -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            <!-- Basic Info Card -->
+            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 24px; color: #2C2420;">Basic Information</h3>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Product Name <span style="color: red;">*</span></label>
+                    <input type="text" id="productName" placeholder="e.g. Luxury Velvet Sofa" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px;">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                     <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Description <span style="color: red;">*</span></label>
+                     <textarea id="productDesc" rows="5" placeholder="Detailed product description..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div>
+                        <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">SKU / Admin Code <span style="color: red;">*</span></label>
+                        <input type="text" id="productSku" placeholder="e.g. SOFA-VEL-001" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: monospace;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dimensions & Pricing Card -->
+            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #2C2420;">Dimensions & Pricing</h3>
+                    <button type="button" onclick="addDimensionRow()" style="background: #F4F1EE; color: #2C2420; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer;">
+                        + Add Variant
+                    </button>
+                </div>
+
+                <table style="width: 100%; border-collapse: separate; border-spacing: 12px 8px;">
+                    <thead>
+                        <tr style="text-align: left; color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <th style="padding-bottom: 8px;">Length (cm)</th>
+                            <th style="padding-bottom: 8px;">Breadth (cm)</th>
+                            <th style="padding-bottom: 8px;">Height (cm)</th>
+                            <th style="padding-bottom: 8px;">Price (₹)</th>
+                            <th style="padding-bottom: 8px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dimensionsBody">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
+                <p style="font-size: 12px; color: #999; margin-top: 12px;">* Ensure at least one dimension variant is added.</p>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            <!-- Organization Card -->
+            <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2C2420;">Organization</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 500; color: #555; font-size: 14px;">Category <span style="color: red;">*</span></label>
+                        <button type="button" onclick="openCategoryModal()" style="background: none; border: none; color: #1976D2; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            + Add New
+                        </button>
+                    </div>
+                    <select id="productCategory" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="">Select Category</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555; font-size: 14px;">Initial Stock <span style="color: red;">*</span></label>
+                    <input type="number" id="productStock" value="0" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                    <p style="font-size: 12px; color: #888; margin-top: 4px;">Inventory will be tracked automatically.</p>
+                </div>
+            </div>
+
+            <!-- Images Card -->
+            <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2C2420;">Images</h3>
+                
+                <div id="dropZone" style="border: 2px dashed #ddd; border-radius: 8px; padding: 32px 16px; text-align: center; cursor: pointer; transition: all 0.2s;" 
+                     onclick="document.getElementById('imageInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: #aaa; margin-bottom: 8px;"></i>
+                    <p style="color: #666; font-size: 14px; margin: 0;">Click to upload images</p>
+                    <p style="color: #aaa; font-size: 12px; margin-top: 4px;">Max 100KB per image</p>
+                </div>
+                <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
+                
+                <div id="imagePreviews" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
+                    <!-- Thumbnails -->
+                </div>
+                
+                <!-- Hidden inputs to store Base64/URLs -->
+                <div id="hiddenImageInputs"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="confirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: scale(0.95); opacity: 0; transition: all 0.2s ease;">
+        <div style="width: 60px; height: 60px; background: #FFF5F5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #D32F2F; font-size: 24px;"></i>
+        </div>
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 22px; color: #1a1a1a; margin-bottom: 12px;">Remove Variant?</h3>
+        <p style="color: #666; font-size: 15px; line-height: 1.5; margin-bottom: 24px;">Are you sure you want to remove this dimension variant? This action cannot be undone.</p>
+        
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeModal()" style="padding: 10px 24px; border: 1px solid #ddd; background: white; border-radius: 6px; color: #555; font-weight: 500; cursor: pointer;">Cancel</button>
+            <button id="confirmBtn" style="padding: 10px 24px; background: #D32F2F; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Yes, Remove</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div id="categoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #1a1a1a; margin-bottom: 24px;">Add New Category</h3>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Category Name</label>
+            <input type="text" id="newCatName" placeholder="e.g. Living Room" class="input-clean" style="width: 100%; padding: 12px;">
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button onclick="document.getElementById('categoryModal').style.display='none'" style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 6px; color: #555; cursor: pointer;">Cancel</button>
+            <button onclick="createCategory()" style="padding: 10px 24px; background: #2C2420; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Create</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = '/api/v1/admin/products/'; 
+    let uploadedImages = [];
+    let rowToDelete = null; 
+
+    document.addEventListener('DOMContentLoaded', () => {
+        addDimensionRow(); 
+        setupImageUpload();
+    });
+
+    // --- Category Logic ---
+    function openCategoryModal() {
+        document.getElementById('categoryModal').style.display = 'flex';
+        document.getElementById('newCatName').focus();
+    }
+
+    async function createCategory() {
+        const nameInput = document.getElementById('newCatName');
+        const name = nameInput.value.trim();
+        if(!name) return showToast('Category name is required', 'error');
+
+        // Auto-generate slug
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+        try {
+            const response = await fetch('/api/v1/admin/categories/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ name: name, slug: slug })
+            });
+
+            if(response.ok) {
+                const cat = await response.json();
+                // Add to dropdown
+                const select = document.getElementById('productCategory');
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.text = cat.name;
+                select.appendChild(option);
+                select.value = cat.id; // Auto-select
+                
+                showToast('Category created!', 'success');
+                document.getElementById('categoryModal').style.display = 'none';
+                nameInput.value = '';
+            } else {
+                showToast('Failed to create category. Name might exist.', 'error');
+            }
+        } catch(e) {
+            console.error(e);
+            showToast('Network error', 'error');
+        }
+    }
+
+    // --- Modal Logic ---
+    function showModal(callback) {
+        const modal = document.getElementById('confirmModal');
+        const content = modal.querySelector('div');
+        const confirmBtn = document.getElementById('confirmBtn');
+        
+        modal.style.display = 'flex';
+        // Trigger reflow for transition
+        void modal.offsetWidth;
+        content.style.transform = 'scale(1)';
+        content.style.opacity = '1';
+
+        confirmBtn.onclick = () => {
+             callback();
+             closeModal();
+        };
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('confirmModal');
+        const content = modal.querySelector('div');
+        
+        content.style.transform = 'scale(0.95)';
+        content.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 200);
+    }
+
+    // --- Dimensions Logic ---
+    function addDimensionRow() {
+        const tbody = document.getElementById('dimensionsBody');
+        const tr = document.createElement('tr');
+        tr.className = 'dim-row';
+        tr.innerHTML = `
+            <td><input type="number" step="0.1" class="dim-l input-clean" placeholder="L"></td>
+            <td><input type="number" step="0.1" class="dim-b input-clean" placeholder="B"></td>
+            <td><input type="number" step="0.1" class="dim-h input-clean" placeholder="H"></td>
+            <td><input type="number" step="1" class="dim-p input-clean" placeholder="₹"></td>
+            <td>
+                <button type="button" onclick="removeRow(this)" style="color: #d32f2f; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function removeRow(btn) {
+        showModal(() => {
+            const row = btn.closest('tr');
+            if(document.querySelectorAll('.dim-row').length > 1) {
+                row.remove();
+            } else {
+                showToast('At least one dimension is required.', 'error');
+            }
+        });
+    }
+
+    // --- Image Logic ---
+    function setupImageUpload() {
+        const input = document.getElementById('imageInput');
+        const dropZone = document.getElementById('dropZone');
+
+        input.addEventListener('change', handleFiles);
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#2C2420'; dropZone.style.background = '#f9f9f9'; });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.borderColor = '#ddd'; dropZone.style.background = 'white'; });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = '#ddd'; dropZone.style.background = 'white'; handleFiles({ target: { files: e.dataTransfer.files } }); });
+    }
+
+    function handleFiles(e) {
+        Array.from(e.target.files).forEach(file => {
+            if(file.size > 100 * 1024) { showToast(`File ${file.name} exceeds 100KB limit.`, 'error'); return; }
+            if(!file.type.startsWith('image/')) { showToast(`File ${file.name} is not an image.`, 'error'); return; }
+            const reader = new FileReader();
+            reader.onload = (ev) => { uploadedImages.push(ev.target.result); renderThumbnails(); showToast('Image added', 'success'); }
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function renderThumbnails() {
+        const container = document.getElementById('imagePreviews');
+        container.innerHTML = '';
+        uploadedImages.forEach((src, index) => {
+            const div = document.createElement('div');
+            div.style.position = 'relative'; div.style.height = '60px'; div.style.borderRadius = '6px'; div.style.overflow = 'hidden';
+            div.innerHTML = `<img src="${src}" style="width: 100%; height: 100%; object-fit: cover;"><button onclick="removeImage(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; cursor: pointer;">×</button>`;
+            container.appendChild(div);
+        });
+    }
+
+    function removeImage(index) { uploadedImages.splice(index, 1); renderThumbnails(); }
+
+    // --- Submission Logic ---
+    async function submitProduct() {
+        try {
+            const name = document.getElementById('productName').value;
+            const desc = document.getElementById('productDesc').value;
+            const sku = document.getElementById('productSku').value;
+            const category = document.getElementById('productCategory').value;
+            const stock = document.getElementById('productStock').value;
+            
+            if(!name || !desc || !sku || !category) { showToast('Please fill in all required fields.', 'error'); return; }
+
+            const dimensions = [];
+            document.querySelectorAll('.dim-row').forEach(row => {
+                const l = row.querySelector('.dim-l').value;
+                const b = row.querySelector('.dim-b').value;
+                const h = row.querySelector('.dim-h').value;
+                const p = row.querySelector('.dim-p').value;
+                if(l && b && h && p) dimensions.push({ length: parseFloat(l), breadth: parseFloat(b), height: parseFloat(h), price: parseFloat(p) });
+            });
+
+            if(dimensions.length === 0) { showToast('Please add at least one valid dimension.', 'error'); return; }
+            const basePrice = Math.min(...dimensions.map(d => d.price));
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ name, description: desc, admin_code: sku, category, stock_quantity: parseInt(stock), base_price: basePrice, image_urls: uploadedImages, dimensions })
+            });
+
+            if(response.ok) { showToast('Product created successfully!', 'success'); setTimeout(() => window.location.href = '/admin/products', 1500); }
+            else { const err = await response.json(); const msg = err.admin_code ? `SKU Error: ${err.admin_code}` : (err.non_field_errors ? err.non_field_errors[0] : 'Failed to create product.'); showToast(msg, 'error'); }
+
+        } catch(e) { console.error(e); showToast('System error occurred.', 'error'); }
+    }
+
+    function showToast(msg, type='info') {
+        const div = document.createElement('div');
+        div.textContent = msg; div.style.position = 'fixed'; div.style.bottom = '20px'; div.style.right = '20px'; div.style.padding = '12px 24px'; div.style.background = type === 'success' ? '#2C2420' : '#D32F2F'; div.style.color = 'white'; div.style.borderRadius = '8px'; div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; div.style.zIndex = '9999'; div.style.animation = 'slideIn 0.3s ease-out';
+        document.body.appendChild(div); setTimeout(() => div.remove(), 3000);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+<style>
+    .input-clean { width: 100%; padding: 8px; border: 1px solid #eee; border-radius: 4px; font-size: 14px; }
+    .input-clean:focus { border-color: #2C2420; outline: none; }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+{% endblock %}

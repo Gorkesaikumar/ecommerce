@@ -1,0 +1,253 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Scroll Banners | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Scroll Banners</h2>
+        <p style="color: #666; font-size: 14px;">Manage top marquee announcements.</p>
+    </div>
+    <button onclick="openModal()" class="btn btn-primary">
+        <i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Add Banner
+    </button>
+</div>
+
+<!-- Banner List -->
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Content</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Priority</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Status</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Colors</th>
+                <th style="padding: 16px 24px; text-align: right; font-size: 12px; text-transform: uppercase;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for banner in banners %}
+            <tr style="border-bottom: 1px solid #f9f9f9;">
+                <td style="padding: 16px 24px; font-weight: 500;">
+                    {{ banner.content|truncatechars:50 }}
+                    <div style="font-size: 12px; color: #888;">{{ banner.start_date|date:"M d" }} - {{ banner.end_date|date:"M d, Y"|default:"Indefinite" }}</div>
+                </td>
+                <td style="padding: 16px 24px;">{{ banner.priority }}</td>
+                <td style="padding: 16px 24px;">
+                    {% if banner.is_active %}
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Active</span>
+                    {% else %}
+                    <span style="background: #f5f5f5; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 16px 24px;">
+                    <div style="display: flex; gap: 8px;">
+                        <div style="width: 20px; height: 20px; border-radius: 4px; background: {{ banner.background_color }}; border: 1px solid #ddd;" title="Background"></div>
+                        <div style="width: 20px; height: 20px; border-radius: 4px; background: {{ banner.text_color }}; border: 1px solid #ddd;" title="Text"></div>
+                    </div>
+                </td>
+                <td style="padding: 16px 24px; text-align: right;">
+                    <button onclick="openModal('{{ banner.id }}', '{{ banner.content|escapejs }}', '{{ banner.link|default:''|escapejs }}', '{{ banner.priority }}', '{{ banner.is_active|yesno:'true,false' }}', '{{ banner.background_color }}', '{{ banner.text_color }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
+                    <button onclick="openDeleteModal('{{ banner.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="padding: 32px; text-align: center; color: #666;">No scroll banners found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="bannerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <h3 id="modalTitle" style="margin-bottom: 24px; font-family: var(--font-heading);">Add Scroll Banner</h3>
+        <form id="bannerForm" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="bannerId">
+            
+            <div style="margin-bottom: 20px;">
+                <label class="form-label">Content Text</label>
+                <textarea id="bannerContent" class="form-input" rows="3" required placeholder="Announcement text..."></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">Priority</label>
+                    <input type="number" id="bannerPriority" class="form-input" value="0">
+                </div>
+                <div>
+                    <label class="form-label">Status</label>
+                    <select id="bannerStatus" class="form-input">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">Background Color</label>
+                    <input type="color" id="bannerBgColor" class="form-input" value="#000000" style="padding: 2px; height: 40px;">
+                </div>
+                <div>
+                    <label class="form-label">Text Color</label>
+                    <input type="color" id="bannerTextColor" class="form-input" value="#FFFFFF" style="padding: 2px; height: 40px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label class="form-label">Link (Optional)</label>
+                <input type="url" id="bannerLink" class="form-input" placeholder="https://...">
+            </div>
+
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Banner</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-trash" style="font-size: 24px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Delete Scroll Banner?</h3>
+        <p style="color: #666; margin-bottom: 24px;">Are you sure you want to delete this scroll banner? This action cannot be undone.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button id="confirmDeleteBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Confirm Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deleteId = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openModal(id=null, content='', link='', priority='0', isActive='true', bgColor='#000000', textColor='#FFFFFF') {
+        const modal = document.getElementById('bannerModal');
+        const title = document.getElementById('modalTitle');
+        const form = document.getElementById('bannerForm');
+        
+        if (id) {
+            title.innerText = 'Edit Scroll Banner';
+            document.getElementById('bannerId').value = id;
+            document.getElementById('bannerContent').value = content;
+             document.getElementById('bannerLink').value = link === 'None' ? '' : link;
+            document.getElementById('bannerPriority').value = priority;
+            document.getElementById('bannerStatus').value = isActive;
+            document.getElementById('bannerBgColor').value = bgColor;
+            document.getElementById('bannerTextColor').value = textColor;
+        } else {
+            title.innerText = 'Add Scroll Banner';
+            form.reset();
+            document.getElementById('bannerId').value = '';
+            document.getElementById('bannerBgColor').value = '#000000';
+            document.getElementById('bannerTextColor').value = '#FFFFFF';
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('bannerModal').style.display = 'none';
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('bannerId').value;
+        const url = id ? `/api/v1/promotions/admin/scroll-banners/${id}/` : '/api/v1/promotions/admin/scroll-banners/';
+        const method = id ? 'PATCH' : 'POST';
+        
+        const data = {
+            content: document.getElementById('bannerContent').value,
+            link: document.getElementById('bannerLink').value || null,
+            priority: parseInt(document.getElementById('bannerPriority').value),
+            is_active: document.getElementById('bannerStatus').value === 'true',
+            background_color: document.getElementById('bannerBgColor').value,
+            text_color: document.getElementById('bannerTextColor').value
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeModal();
+                window.showAdminToast(id ? 'Banner updated' : 'Banner created', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                 const res = await response.json();
+                 window.showAdminToast('Error saving banner', 'error');
+                 console.error(res);
+            }
+        } catch (error) {
+            console.error(error);
+            window.showAdminToast('Network error', 'error');
+        }
+    }
+
+    function openDeleteModal(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        deleteId = null;
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+        if (!deleteId) return;
+        
+        try {
+            const response = await fetch(`/api/v1/promotions/admin/scroll-banners/${deleteId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                closeDeleteModal();
+                window.showAdminToast('Banner deleted', 'delete');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                window.showAdminToast('Failed to delete', 'error');
+            }
+        } catch (error) {
+            window.showAdminToast('Error deleting', 'error');
+        }
+    };
+    
+    // Close on outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('bannerModal')) closeModal();
+        if (event.target == document.getElementById('deleteModal')) closeDeleteModal();
+    }
+</script>
+{% endblock %}

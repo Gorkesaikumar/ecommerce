@@ -1,0 +1,223 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Analytics & Reports | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: end;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Analytics & Reports</h2>
+        <p style="color: #666; font-size: 14px;">Business performance overview.</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <select id="periodFilter" onchange="loadDashboard()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;">
+            <option value="today">Today</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d" selected>Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+            <option value="all">All Time</option>
+        </select>
+        <button onclick="exportCSV()" class="btn btn-secondary">
+            <i class="fa-solid fa-download" style="margin-right: 8px;"></i> Export CSV
+        </button>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px;">
+    <!-- Sales Card -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <div>
+                <p style="color: #666; font-size: 14px; margin-bottom: 4px;">Total Orders</p>
+                <h3 id="totalSales" style="font-size: 28px; color: #1a1a1a; margin: 0;">-</h3>
+            </div>
+            <div style="width: 40px; height: 40px; background: #e3f2fd; color: #1976d2; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+        </div>
+        <p style="font-size: 12px; color: #666;">Completed orders only</p>
+    </div>
+
+    <!-- Revenue Card -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <div>
+                <p style="color: #666; font-size: 14px; margin-bottom: 4px;">Total Revenue</p>
+                <h3 id="totalRevenue" style="font-size: 28px; color: #1a1a1a; margin: 0;">-</h3>
+            </div>
+            <div style="width: 40px; height: 40px; background: #e8f5e9; color: #2e7d32; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
+            </div>
+        </div>
+         <p style="font-size: 12px; color: #666;">Based on paid & shipped orders</p>
+    </div>
+
+    <!-- Top Product Card -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+            <div>
+                <p style="color: #666; font-size: 14px; margin-bottom: 4px;">Top Product</p>
+                <h3 id="topProduct" style="font-size: 18px; color: #1a1a1a; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">-</h3>
+            </div>
+            <div style="width: 40px; height: 40px; background: #fce4ec; color: #c2185b; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+        </div>
+        <p id="topProductQty" style="font-size: 12px; color: #666;">- units sold</p>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Sales Trend -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+        <h4 style="margin-bottom: 24px; font-size: 16px;">Sales Trend</h4>
+        <div style="position: relative; height: 300px;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Categories -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+        <h4 style="margin-bottom: 24px; font-size: 16px;">Top Categories</h4>
+        <div style="position: relative; height: 300px;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let salesChartInstance = null;
+    let categoryChartInstance = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function loadDashboard() {
+        const period = document.getElementById('periodFilter').value;
+        
+        try {
+            // 1. Load Stats
+            const statsRes = await fetch(`/api/v1/admin/analytics/stats/?period=${period}`, {
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const stats = await statsRes.json();
+            
+            document.getElementById('totalSales').innerText = stats.total_sales;
+            document.getElementById('totalRevenue').innerText = '₹' + parseFloat(stats.total_revenue).toLocaleString('en-IN');
+            document.getElementById('topProduct').innerText = stats.top_product;
+            document.getElementById('topProduct').title = stats.top_product; // Tooltip for full name
+            document.getElementById('topProductQty').innerText = `${stats.top_product_qty} units sold`;
+
+            // 2. Load Charts
+            const chartRes = await fetch(`/api/v1/admin/analytics/charts/?period=${period}`, {
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const chartData = await chartRes.json();
+            
+            renderSalesChart(chartData.trend);
+            renderCategoryChart(chartData.categories);
+
+        } catch (e) {
+            console.error(e);
+            window.showAdminToast('Failed to load report data', 'error');
+        }
+    }
+
+    function renderSalesChart(data) {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const labels = data.map(d => d.date);
+        const revenues = data.map(d => d.revenue);
+
+        if (salesChartInstance) salesChartInstance.destroy();
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: revenues,
+                    borderColor: '#2e7d32',
+                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function renderCategoryChart(data) {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        const labels = data.map(d => d.product__category__name || 'Uncategorized');
+        const counts = data.map(d => d.count);
+
+        if (categoryChartInstance) categoryChartInstance.destroy();
+
+        categoryChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: [
+                        '#C5A065', '#2e7d32', '#1976d2', '#c2185b', '#fbc02d'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    function exportCSV() {
+        const period = document.getElementById('periodFilter').value;
+        const url = `/api/v1/admin/analytics/export/?period=${period}`;
+        
+        // Use a temporary link to force download and handle errors better if needed
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `sales_report_${period}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.showAdminToast('Export started...', 'success');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+
+</script>
+{% endblock %}

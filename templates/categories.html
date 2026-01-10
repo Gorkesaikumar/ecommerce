@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}All Categories | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header" style="text-align: center; max-width: 800px; margin: 0 auto 60px;">
+        <h1 style="font-family: var(--font-heading); font-size: 48px; margin-bottom: 16px;">Curated Collections</h1>
+        <p style="color: var(--text-secondary); font-size: 18px;">Explore our thoughtfully designed categories, each crafted to bring potential into your potential.</p>
+    </div>
+
+    <div class="category-pills" style="margin-bottom: 80px;">
+         <!-- Reusing the pill design but in a dedicated grid -->
+        <a href="/products/?category=home-decor" class="cat-pill" style="justify-content: center; flex-direction: column; text-align: center; padding: 40px;">
+            <svg class="cat-icon" style="width: 48px; height: 48px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <span class="cat-label" style="font-size: 18px;">Home Decor</span>
+        </a>
+        <a href="/products/?category=apparel" class="cat-pill" style="justify-content: center; flex-direction: column; text-align: center; padding: 40px;">
+            <svg class="cat-icon" style="width: 48px; height: 48px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20.38 3.4a2 2 0 0 0-2-1H5.62a2 2 0 0 0-2 1L2 12v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9l-1.62-8.6z"></path>
+                <path d="M12 11h.01"></path>
+            </svg>
+            <span class="cat-label" style="font-size: 18px;">Apparel</span>
+        </a>
+        <a href="/products/?category=wellness" class="cat-pill" style="justify-content: center; flex-direction: column; text-align: center; padding: 40px;">
+            <svg class="cat-icon" style="width: 48px; height: 48px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span class="cat-label" style="font-size: 18px;">Wellness</span>
+        </a>
+        <a href="/products/?category=travel" class="cat-pill" style="justify-content: center; flex-direction: column; text-align: center; padding: 40px;">
+            <svg class="cat-icon" style="width: 48px; height: 48px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="cat-label" style="font-size: 18px;">Travel</span>
+        </a>
+    </div>
+
+    <div class="collection-grid">
+        <div class="collection-card">
+            <img src="/static/img/collection1.jpg" alt="Dining">
+            <div class="collection-overlay">
+                <h3 style="color: white; margin-bottom: 8px; font-family: var(--font-heading);">The Dining Edit</h3>
+                <a href="/products/?category=dining" class="btn-overlay">Browse</a>
+            </div>
+        </div>
+        <div class="collection-card">
+            <img src="/static/img/collection2.jpg" alt="Living">
+            <div class="collection-overlay">
+                 <h3 style="color: white; margin-bottom: 8px; font-family: var(--font-heading);">Living Room</h3>
+                <a href="/products/?category=living" class="btn-overlay">Browse</a>
+            </div>
+        </div>
+        <div class="collection-card">
+            <img src="/static/img/collection3.jpg" alt="Office">
+            <div class="collection-overlay">
+                 <h3 style="color: white; margin-bottom: 8px; font-family: var(--font-heading);">Home Office</h3>
+                <a href="/products/?category=office" class="btn-overlay">Browse</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

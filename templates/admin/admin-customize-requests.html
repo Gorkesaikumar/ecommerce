@@ -1,0 +1,214 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Customize Requests | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: end;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Customize Requests</h2>
+        <p style="color: #666; font-size: 14px;">Review and manage user customization inquiries.</p>
+    </div>
+</div>
+
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Product</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Customer</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Dimensions (L x B x H)</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Status</th>
+                    <th style="padding: 16px 24px; text-align: center; font-size: 12px; text-transform: uppercase;">Date</th>
+                    <th style="padding: 16px 24px; text-align: right; font-size: 12px; text-transform: uppercase;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr style="border-bottom: 1px solid #f9f9f9;">
+                    <td style="padding: 16px 24px;">
+                        <div style="font-weight: 500; color: #333;">{{ req.product.name }}</div>
+                        <div style="font-size: 12px; color: #888;">{{ req.product.admin_code }}</div>
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        <div style="font-weight: 500;">{{ req.name }}</div>
+                        <div style="font-size: 13px; color: #666;">{{ req.email }}</div>
+                        <div style="font-size: 12px; color: #888;">{{ req.phone }}</div>
+                    </td>
+                    <td style="padding: 16px 24px; font-family: monospace; color: #444;">
+                        {{ req.length }} x {{ req.breadth }} x {{ req.height }} cm
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        <span class="status-badge status-{{ req.status|lower }}">{{ req.get_status_display }}</span>
+                    </td>
+                    <td style="padding: 16px 24px; text-align: center; color: #666; font-size: 13px;">
+                        {{ req.created_at|date:"M d, Y" }}
+                    </td>
+                    <td style="padding: 16px 24px; text-align: right;">
+                        <button onclick="openRequestModal('{{ req.id }}', '{{ req.message|escapejs }}', '{{ req.status }}', '{{ req.phone }}', '{{ req.admin_note|escapejs }}')" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer; font-size: 12px;">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 48px; text-align: center; color: #888;">No customization requests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Request Detail Modal -->
+<div id="requestModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; width: 90%; max-width: 500px; padding: 32px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="font-family: 'Playfair Display', serif; margin: 0;">Request Details</h3>
+            <button onclick="closeRequestModal()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer;">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 12px; text-transform: uppercase; color: #888; margin-bottom: 4px;">Customer Message</label>
+             <div id="reqMessage" style="background: #f9f9f9; padding: 12px; border-radius: 6px; color: #444; min-height: 60px; font-size: 14px; margin-bottom: 12px;"></div>
+             
+             <!-- WhatsApp Action -->
+             <a id="waLink" href="#" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #25D366; font-weight: 600; font-size: 14px; padding: 8px 0;">
+                <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i>
+                Chat with Customer
+             </a>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 12px; text-transform: uppercase; color: #888; margin-bottom: 4px;">Admin Note / Reason</label>
+            <textarea id="adminNote" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit;" placeholder="Enter reason for rejection or special comments..."></textarea>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-size: 12px; text-transform: uppercase; color: #888; margin-bottom: 4px;">Current Status</label>
+            <div id="currentStatusBadge" style="font-weight: 600; margin-bottom: 8px;"></div>
+        </div>
+
+        <input type="hidden" id="reqId">
+        <input type="hidden" id="reqPhone">
+
+        <div style="display: flex; gap: 12px; justify-content: space-between; border-top: 1px solid #eee; padding-top: 20px;">
+            <button onclick="updateStatus('REJECTED')" style="padding: 10px 20px; background: #ffebee; color: #d32f2f; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; flex: 1;">Decline</button>
+            <button onclick="updateStatus('ACCEPTED')" style="padding: 10px 20px; background: #e8f5e9; color: #388e3c; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; flex: 1;">Accept</button>
+        </div>
+        <div style="margin-top: 12px; display: flex; justify-content: center;">
+             <button onclick="updateStatus('CONTACTED')" style="background: none; border: none; color: #666; font-size: 13px; cursor: pointer; text-decoration: underline;">Mark as Contacted</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-pending { background: #fff8e1; color: #ff8f00; }
+    .status-reviewed { background: #e3f2fd; color: #1976d2; }
+    .status-contacted { background: #f3e5f5; color: #7b1fa2; }
+    .status-accepted { background: #e8f5e9; color: #388e3c; }
+    .status-rejected { background: #ffebee; color: #d32f2f; }
+    .status-completed { background: #f5f5f5; color: #616161; }
+</style>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openRequestModal(id, message, status, phone, note) {
+        document.getElementById('reqId').value = id;
+        document.getElementById('reqMessage').innerText = message || 'No message provided.';
+        document.getElementById('adminNote').value = note || '';
+        document.getElementById('currentStatusBadge').innerText = status;
+        
+        // Setup WhatsApp Link
+        // Ensure phone has country code or add default 91 if likely Indian
+        let cleanPhone = phone.replace(/\D/g, ''); 
+        if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+        document.getElementById('waLink').href = `https://wa.me/${cleanPhone}?text=Hi, this is regarding your custom furniture request on Aethereal.`;
+
+        // Disable options if already accepted/rejected
+        const isCompleted = ['ACCEPTED', 'REJECTED', 'COMPLETED'].includes(status);
+        const noteArea = document.getElementById('adminNote');
+        const waLink = document.getElementById('waLink');
+        const buttons = document.querySelectorAll('#requestModal button[onclick^="updateStatus"]');
+
+        if (isCompleted) {
+            noteArea.disabled = true;
+            noteArea.style.backgroundColor = '#f5f5f5';
+            waLink.style.display = 'none';
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        } else {
+            noteArea.disabled = false;
+            noteArea.style.backgroundColor = '#fff';
+            waLink.style.display = 'inline-flex';
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+
+        document.getElementById('requestModal').style.display = 'flex';
+    }
+
+    function closeRequestModal() {
+        document.getElementById('requestModal').style.display = 'none';
+    }
+
+    async function updateStatus(newStatus) {
+        const id = document.getElementById('reqId').value;
+        const note = document.getElementById('adminNote').value;
+        
+        // Optimistic UI could go here, but let's wait for server
+        try {
+            const response = await fetch(`/api/v1/admin/customize-requests/${id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ 
+                    status: newStatus,
+                    admin_note: note
+                })
+            });
+
+            if (response.ok) {
+                window.showAdminToast(`Request marked as ${newStatus}`, 'success');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                window.showAdminToast('Failed to update status', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            window.showAdminToast('Network error', 'error');
+        }
+    }
+    
+    // Outside click close
+    window.onclick = function(e) {
+        const modal = document.getElementById('requestModal');
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

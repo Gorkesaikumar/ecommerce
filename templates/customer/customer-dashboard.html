@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dashboard-layout">
+        {% include 'customer/sidebar.html' %}
+
+        <main>
+            <div style="margin-bottom: 32px;">
+                <h2 style="font-family: var(--font-heading);">Welcome, {{ request.user.name|default:'Guest' }}</h2>
+                <p style="color: var(--text-secondary);">Manage your account and view orders.</p>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-value">{{ orders_count }}</div>
+                    <a href="/account/orders" style="font-size: 13px; color: var(--text-primary); margin-top: 16px; display: inline-block; text-decoration: underline;">View History</a>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Addresses</div>
+                    <div class="stat-value">{{ addresses_count }}</div>
+                    <a href="/account/addresses" style="font-size: 13px; color: var(--text-primary); margin-top: 16px; display: inline-block; text-decoration: underline;">Manage</a>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Account Support</div>
+                    <div class="stat-value" style="font-size: 20px;">Help Center</div>
+                     <a href="/support" style="font-size: 13px; color: var(--text-primary); margin-top: 16px; display: inline-block; text-decoration: underline;">Contact Us</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</section>
+
+<script>
+    const logoutLink = document.querySelector('a[href="/logout"]');
+    if(logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Optional: call API logout if needed, otherwise standard link works
+             window.location.href = '/logout';
+        });
+    }
+</script>
+{% endblock %}

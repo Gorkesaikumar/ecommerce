@@ -1,0 +1,267 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Order #{{ order.id|truncatechars:8 }} | WoodCraft Admin{% endblock %}
+
+{% block admin_content %}
+    <div style="margin-bottom: 24px;">
+        <a href="/admin/orders" style="margin-bottom: 16px; display: inline-block; color: var(--text-secondary);">← Back to Orders</a>
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <h2 style="font-family: var(--font-heading); margin-bottom: 4px;">Order #{{ order.id }}</h2>
+                <div style="font-size: 14px; color: var(--text-secondary);">Placed on {{ order.created_at|date:"F d, Y at H:i" }}</div>
+                <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #eee;">
+                    <h4 style="margin-bottom: 16px;">Update Info</h4>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <select id="statusSelect" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="PENDING" {% if order.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                            <option value="SHIPPED" {% if order.status == 'SHIPPED' %}selected{% endif %}>Shipped</option>
+                            <option value="DELIVERED" {% if order.status == 'DELIVERED' %}selected{% endif %}>Delivered</option>
+                            <option value="CANCELLED" {% if order.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                        <button id="updateStatusBtn" class="btn btn-primary" style="padding: 10px 20px;">Update Status</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 16px;">
+                <button onclick="updateStatus('SHIPPED')" class="btn btn-primary">Mark as Shipped</button>
+                <button onclick="updateStatus('CANCELLED')" class="btn btn-secondary" style="border-color: #d32f2f; color: #d32f2f;">Cancel Order</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+        <!-- Left: Items -->
+        <div style="background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid #eee; font-weight: 500;">Order Items</div>
+            {% for item in order.items.all %}
+            <div style="display: flex; gap: 16px; padding: 20px; border-bottom: 1px solid #f9f9f9;">
+                    <div style="width: 60px; height: 60px; background: #eee; border-radius: 4px;"></div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 500;">{{ item.product_snapshot.name }}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">SKU: {{ item.product_snapshot.code }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 500;">₹{{ item.unit_price }}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">Qty: {{ item.quantity }}</div>
+                    </div>
+            </div>
+            {% endfor %}
+            <div style="padding: 20px; background: #fafafa; display: flex; justify-content: space-between; font-weight: 600;">
+                <span>Total Amount</span>
+                <span>₹{{ order.total_amount }}</span>
+            </div>
+        </div>
+
+        <!-- Right: Customer Info -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 24px;">
+                <h4 style="margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-secondary);">Customer Details</h4>
+                <div style="margin-bottom: 8px; font-weight: 500;">{{ order.user.first_name|default:'Guest' }}</div>
+                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">{{ order.guest_email|default:order.user.email }}</div>
+                <div style="font-size: 14px; color: var(--text-secondary);">{{ order.guest_phone|default:order.user.mobile_number }}</div>
+            </div>
+
+            <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 24px;">
+                <h4 style="margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-secondary);">Shipping Address</h4>
+                <div style="font-size: 14px; line-height: 1.6; color: var(--text-primary);">
+                    {{ order.shipping_address.line1 }}<br>
+                    {{ order.shipping_address.city }} - {{ order.shipping_address.zip_code }}<br>
+                    {{ order.shipping_address.state }}
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Custom Confirmation Modal -->
+<div id="confirmationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 5000; align-items: center; justify-content: center;">
+    <div style="background: white; width: 100%; max-width: 400px; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); text-align: center;">
+        <h3 style="font-family: var(--font-heading); margin-bottom: 12px; font-size: 24px;">Confirm Action</h3>
+        <p id="modalMessage" style="color: var(--text-secondary); margin-bottom: 24px;">Are you sure you want to update this order?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="modalCancelBtn" class="btn btn-secondary" style="min-width: 100px;">Cancel</button>
+            <button id="modalConfirmBtn" class="btn btn-primary" style="min-width: 100px;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const updateBtn = document.getElementById('updateStatusBtn');
+        const modal = document.getElementById('confirmationModal');
+        const modalTitle = modal.querySelector('h3');
+        const modalMessage = document.getElementById('modalMessage');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const cancelBtn = document.getElementById('modalCancelBtn');
+        const statusSelect = document.getElementById('statusSelect');
+        
+        let pendingAction = null;
+        let isAlertMode = false;
+
+        const currentStatus = "{{ order.status }}";
+        
+        // 1. Initial State Check
+        if(currentStatus === 'CANCELLED' || currentStatus === 'DELIVERED') {
+            if(statusSelect) {
+                statusSelect.disabled = true;
+                statusSelect.style.background = '#f5f5f5';
+                statusSelect.style.cursor = 'not-allowed';
+            }
+            if(updateBtn) {
+                // Update styling to look slightly disabled but remain clickable for the popup
+                updateBtn.style.opacity = '0.7'; 
+                // Note: we don't set .disabled=true so click event still fires
+            }
+        }
+
+        // Helper: Reset Modal State
+        function resetModal() {
+            modalTitle.textContent = 'Confirm Action';
+            confirmBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+            cancelBtn.textContent = 'Cancel';
+            confirmBtn.textContent = 'Confirm';
+            isAlertMode = false;
+        }
+
+        // Helper: Show Alert (Single Button)
+        function showAlert(title, message) {
+            resetModal();
+            isAlertMode = true;
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            
+            confirmBtn.style.display = 'none';
+            cancelBtn.textContent = 'OK';
+            cancelBtn.classList.remove('btn-secondary');
+            cancelBtn.classList.add('btn-primary');
+            
+            modal.style.display = 'flex';
+        }
+
+        // Function to close modal
+        function closeModal() {
+            modal.style.display = 'none';
+            pendingAction = null;
+            
+            // Restore button styles if alert mode changed them
+            if(isAlertMode) {
+                cancelBtn.classList.remove('btn-primary');
+                cancelBtn.classList.add('btn-secondary');
+            }
+        }
+
+        // Handle Update Logic
+        async function convertAndExecute() {
+            if(!pendingAction) return;
+            
+            const btn = document.getElementById('updateStatusBtn'); 
+            const { status, orderId } = pendingAction;
+            
+            closeModal();
+
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = 'Updating...';
+            }
+
+            try {
+                 function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                const csrftoken = getCookie('csrftoken');
+
+                const response = await fetch(`/api/v1/orders/${orderId}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ status: status })
+                });
+
+                if (response.ok) {
+                    window.showToast('Order status updated successfully'); 
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    const err = await response.json();
+                    
+                    // Show Error in Modal instead of ugly alert
+                    showAlert('Update Failed', err.non_field_errors ? err.non_field_errors[0] : (err.error || 'An error occurred'));
+                    
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Update Status';
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                showAlert('Network Error', 'Could not connect to server.');
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Update Status';
+                }
+            }
+        }
+
+        // Event Listeners for Modal
+        cancelBtn.addEventListener('click', closeModal);
+        confirmBtn.addEventListener('click', convertAndExecute);
+        
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) closeModal();
+        });
+
+        // Trigger for Dropdown Update
+        if(updateBtn) {
+            updateBtn.addEventListener('click', (e) => {
+                // Check if Cancelled or Delivered
+                if(currentStatus === 'CANCELLED' || currentStatus === 'DELIVERED') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showAlert('Action Restricted', `This order is ${currentStatus} and cannot be edited.`);
+                    return;
+                }
+
+                resetModal();
+                const status = document.getElementById('statusSelect').value;
+                const orderId = "{{ order.id }}";
+                
+                pendingAction = { status, orderId };
+                modalMessage.textContent = `Update order status to ${status}?`;
+                modal.style.display = 'flex';
+            });
+        }
+        
+        // Expose helper for quick buttons
+        window.updateStatus = function(status) {
+            if(currentStatus === 'CANCELLED' || currentStatus === 'DELIVERED') {
+                showAlert('Action Restricted', `This order is ${currentStatus} and cannot be edited.`);
+                return;
+            }
+
+            resetModal();
+            const select = document.getElementById('statusSelect');
+            if(select) select.value = status;
+            
+            const orderId = "{{ order.id }}";
+            pendingAction = { status, orderId };
+            
+            modalMessage.textContent = `Update order status to ${status}?`;
+            modal.style.display = 'flex';
+        };
+    });
+</script>
+{% endblock %}

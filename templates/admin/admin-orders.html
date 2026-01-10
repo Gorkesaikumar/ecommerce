@@ -1,0 +1,64 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Orders | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Orders</h2>
+        <p style="color: #666; font-size: 14px;">View and manage customer orders.</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button class="btn" style="background: white; border: 1px solid #ddd; color: #333; padding: 10px 16px;">
+            <i class="fa-solid fa-filter"></i> Filter
+        </button>
+        <button class="btn" style="background: white; border: 1px solid #ddd; color: #333; padding: 10px 16px;">
+            <i class="fa-solid fa-download"></i> Export
+        </button>
+    </div>
+</div>
+
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    {% if orders %}
+    <div style="overflow-x: auto;">
+        <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                    <th style="padding: 16px 24px; text-align: left;">Order ID</th>
+                    <th style="padding: 16px 24px; text-align: left;">Date</th>
+                    <th style="padding: 16px 24px; text-align: left;">Customer</th>
+                    <th style="padding: 16px 24px; text-align: left;">Items</th>
+                    <th style="padding: 16px 24px; text-align: left;">Total</th>
+                    <th style="padding: 16px 24px; text-align: left;">Status</th>
+                    <th style="padding: 16px 24px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr style="border-bottom: 1px solid #f9f9f9;">
+                    <td style="padding: 16px 24px; font-family: monospace;">#{{ order.id|truncatechars:8 }}</td>
+                    <td style="padding: 16px 24px; font-size: 13px; color: #666;">{{ order.created_at|date:"M d, Y" }}</td>
+                    <td style="padding: 16px 24px; font-weight: 500;">{{ order.user.first_name|default:order.guest_phone }}</td>
+                    <td style="padding: 16px 24px;">{{ order.items.count }} items</td>
+                    <td style="padding: 16px 24px; font-weight: 600;">₹{{ order.total_amount }}</td>
+                    <td style="padding: 16px 24px;">
+                        <span class="badge {% if order.status == 'PENDING' %}badge-warning{% elif order.status == 'SHIPPED' %}badge-success{% else %}badge-neutral{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 16px 24px; text-align: right;">
+                        <a href="/admin/orders/{{ order.id }}" class="btn-sm" style="color: #2C2420;">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 60px; text-align: center; color: #999;">
+        <i class="fa-solid fa-box-open" style="font-size: 48px; opacity: 0.2; margin-bottom: 16px;"></i>
+        <p>No orders found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

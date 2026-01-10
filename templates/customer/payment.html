@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-family: var(--font-heading);">Complete Payment</h2>
+            <p style="color: var(--text-secondary);">Securely pay via Razorpay</p>
+        </div>
+
+        <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 18px; font-weight: 600;">
+                <span>Total Amount</span>
+                <span>₹{{ order.total_amount }}</span>
+            </div>
+
+            <div style="margin-bottom: 32px; padding: 16px; background: #f9f9f9; border-radius: 4px;">
+                <div style="margin-bottom: 8px;">Order #: {{ order.id }}</div>
+                <div>Items: {{ order.items.count }}</div>
+            </div>
+
+            <button id="payBtn" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px;">Pay Now</button>
+            <div id="paymentError" style="color: red; margin-top: 16px; text-align: center; display: none;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const orderId = "{{ order.id }}";
+    const payBtn = document.getElementById('payBtn');
+    const errorDiv = document.getElementById('paymentError');
+
+    payBtn.addEventListener('click', async () => {
+        payBtn.disabled = true;
+        payBtn.innerText = 'Initializing...';
+        errorDiv.style.display = 'none';
+
+        try {
+            // 1. Initialize Payment on Backend
+            const initResponse = await fetch('/api/v1/payments/razorpay/init', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Session-Key': getCookie('session_key') || ''
+                },
+                body: JSON.stringify({ order_id: orderId })
+            });
+
+            if (!initResponse.ok) {
+                const err = await initResponse.json();
+                throw new Error(err.error || 'Initialization failed');
+            }
+
+            const data = await initResponse.json();
+
+            // 2. Open Razorpay
+            const options = {
+                "key": data.key_id,
+                "amount": data.amount,
+                "currency": data.currency,
+                "name": "WoodCraft Ecommerce",
+                "description": "Payment for Order #" + orderId,
+                "image": "/static/images/logo.png", // Add logo if available
+                "order_id": data.razorpay_order_id,
+                "handler": async function (response){
+                    // 3. Verify Payment
+                    payBtn.innerText = 'Verifying...';
+                    
+                    try {
+                        const verifyRes = await fetch('/api/v1/payments/razorpay/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken'),
+                                'X-Session-Key': getCookie('session_key') || ''
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        if(verifyRes.ok) {
+                            // Use href so 'Back' button hits this page again, triggering the backend redirect to Home
+                            window.location.href = `/api/v1/orders/${orderId}/invoice`; 
+                        } else {
+                            throw new Error('Verification failed');
+                        }
+                    } catch(e) {
+                        errorDiv.innerText = e.message;
+                        errorDiv.style.display = 'block';
+                        payBtn.innerText = 'Pay Now';
+                        payBtn.disabled = false;
+                    }
+                },
+                "prefill": {
+                    "name": "{{ order.user.name|default:'' }}",
+                    "email": "{{ order.user.email|default:order.guest_email }}",
+                    "contact": "{{ order.user.mobile_number|default:order.guest_phone }}"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+            
+            const rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response){
+                errorDiv.innerText = response.error.description;
+                errorDiv.style.display = 'block';
+                payBtn.innerText = 'Pay Now';
+                payBtn.disabled = false;
+            });
+            rzp1.open();
+
+        } catch (e) {
+            console.error(e);
+            errorDiv.innerText = e.message;
+            errorDiv.style.display = 'block';
+            payBtn.innerText = 'Pay Now';
+            payBtn.disabled = false;
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

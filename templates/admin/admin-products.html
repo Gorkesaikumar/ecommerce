@@ -1,0 +1,153 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Products | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Products</h2>
+        <p style="color: #666; font-size: 14px;">Manage your inventory and catalog.</p>
+    </div>
+    <a href="/admin/products/add" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; background: #2C2420; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+        <i class="fa-solid fa-plus"></i> Add Product
+    </a>
+</div>
+
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    {% if products %}
+    <div style="overflow-x: auto;">
+        <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                    <th style="padding: 16px 24px; text-align: left;">Product</th>
+                    <th style="padding: 16px 24px; text-align: left;">SKU</th>
+                    <th style="padding: 16px 24px; text-align: left;">Category</th>
+                    <th style="padding: 16px 24px; text-align: left;">Price</th>
+                    <th style="padding: 16px 24px; text-align: left;">Stock</th>
+                    <th style="padding: 16px 24px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr style="border-bottom: 1px solid #f9f9f9;">
+                    <td style="padding: 16px 24px; font-weight: 500;">
+                        <a href="/admin/products/{{ product.id }}/edit" style="color: inherit; text-decoration: none;">{{ product.name }}</a>
+                    </td>
+                    <td style="padding: 16px 24px; font-family: monospace; font-size: 13px;">{{ product.admin_code }}</td>
+                    <td style="padding: 16px 24px;"><span class="badge badge-neutral">{{ product.category.name }}</span></td>
+                    <td style="padding: 16px 24px;">₹{{ product.base_price }}</td>
+                    <td style="padding: 16px 24px;">
+                        {% if product.stock_quantity > 10 %}
+                        <span style="color: green;">{{ product.stock_quantity }} in stock</span>
+                        {% else %}
+                        <span style="color: #d32f2f;">Low: {{ product.stock_quantity }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px 24px; text-align: right;">
+                        <a href="/admin/products/{{ product.id }}/edit" style="color: #2C2420; margin-right: 12px;" title="Edit">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <button onclick="openDeleteProductModal('{{ product.id }}')" style="background: none; border: none; color: #d32f2f; cursor: pointer;" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 60px; text-align: center; color: #999;">
+        <i class="fa-solid fa-couch" style="font-size: 48px; opacity: 0.2; margin-bottom: 16px;"></i>
+        <p>No products found.</p>
+        <a href="/admin/products/add" style="color: #2C2420; text-decoration: underline; margin-top: 8px; display: inline-block;">Add your first product</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Product Confirmation Modal -->
+<div id="deleteProductModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 28px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Delete Product?</h3>
+        <p style="color: #666; margin-bottom: 24px; line-height: 1.5;">This action is permanent. The product will be removed from the catalog and cannot be restored.</p>
+        
+        <input type="hidden" id="deleteProductId">
+        
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteProductModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="confirmDeleteProduct()" id="btnConfirmDelete" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Permanently Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openDeleteProductModal(id) {
+        document.getElementById('deleteProductId').value = id;
+        document.getElementById('deleteProductModal').style.display = 'flex';
+    }
+
+    function closeDeleteProductModal() {
+        document.getElementById('deleteProductModal').style.display = 'none';
+        document.getElementById('deleteProductId').value = '';
+    }
+
+    async function confirmDeleteProduct() {
+        const id = document.getElementById('deleteProductId').value;
+        const btn = document.getElementById('btnConfirmDelete');
+        
+        if(!id) return;
+
+        btn.innerHTML = 'Deleting...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/v1/admin/products/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                 window.showAdminToast('Product deleted successfully', 'delete'); // Assuming showAdminToast exists globally
+                 setTimeout(() => window.location.reload(), 1500);
+            } else {
+                window.showAdminToast('Failed to delete product', 'error');
+                btn.innerHTML = 'Permanently Delete';
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            window.showAdminToast('Error processing request', 'error');
+            btn.innerHTML = 'Permanently Delete';
+            btn.disabled = false;
+        }
+    }
+    
+    // Close modal on outside click
+    window.onclick = function(e) {
+        const modal = document.getElementById('deleteProductModal');
+        if (e.target === modal) {
+            closeDeleteProductModal();
+        }
+    }
+</script>
+{% endblock %}

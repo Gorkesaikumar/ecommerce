@@ -1,0 +1,46 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Audit Logs | WoodCraft Admin{% endblock %}
+
+{% block admin_content %}
+    <div style="margin-bottom: 24px;">
+        <h2 style="font-family: var(--font-heading);">System Audit Logs</h2>
+        <p style="color: var(--text-secondary);">Track all sensitive system actions.</p>
+    </div>
+
+    <div class="table-container">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Action</th>
+                    <th>Actor</th>
+                    <th>Resource</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color: var(--text-secondary); font-size: 13px;">{{ log.timestamp|date:"M d, H:i:s" }}</td>
+                    <td>
+                        <span class="badge badge-neutral" style="font-family: monospace;">{{ log.action }}</span>
+                    </td>
+                    <td>
+                        <div style="font-weight: 500;">{{ log.user.first_name|default:log.user_mobile }}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">{{ log.user_role }}</div>
+                    </td>
+                    <td style="font-size: 13px;">{{ log.resource_type }} #{{ log.resource_id }}</td>
+                    <td style="font-family: monospace; font-size: 13px;">{{ log.ip_address }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        No audit logs found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

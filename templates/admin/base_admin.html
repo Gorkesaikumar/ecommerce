@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Portal | Aethereal{% endblock %}
+
+{% block header_content %}
+    <div class="header-left">
+        <!-- No Customer Menu -->
+    </div>
+
+    <div class="header-center">
+        <a href="/admin/dashboard" class="brand-logo">AETHEREAL <span style="font-size: 14px; font-weight: 400; opacity: 0.6; letter-spacing: 2px;">ADMIN</span></a>
+    </div>
+
+    <div class="header-right">
+        <!-- No Cart/Profile Icons -->
+    </div>
+{% endblock %}
+
+{% block footer_content %}
+    <!-- No Footer in Admin Portal -->
+{% endblock %}
+
+{% block content %}
+<section class="section" style="padding: 0; max-width: 100%; box-sizing: border-box;">
+    <div class="dashboard-layout" style="display: flex; align-items: flex-start;">
+        {% include 'admin/sidebar.html' %}
+
+        <main style="flex: 1; padding: 40px; background: #fafafa; min-height: calc(100vh - 80px); width: calc(100% - 260px);">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Global Admin Toast Container -->
+<div id="toast-container" style="position: fixed; top: 32px; right: 32px; z-index: 9999; display: flex; flex-direction: column; gap: 16px;"></div>
+
+<script>
+    // Global Admin Toast Function
+    window.showAdminToast = function(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        
+        // Colors
+        let bg = '#333'; 
+        let color = '#fff';
+        let icon = '';
+        
+        if (type === 'success') {
+            bg = '#2e7d32'; /* Green */
+            color = '#fff';
+            icon = '<i class="fa-solid fa-circle-check" style="margin-right: 8px; color: #fff;"></i>';
+        } else if (type === 'delete') {
+            bg = '#d32f2f'; /* Red for delete */
+            color = '#fff';
+            icon = '<i class="fa-solid fa-trash-can" style="margin-right: 8px; color: #fff;"></i>';
+        } else if (type === 'error') {
+            bg = '#d32f2f'; /* Red for error */
+            color = '#fff';
+            icon = '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px; color: #fff;"></i>';
+        }
+
+        toast.style.cssText = `
+            background: ${bg} !important;
+            color: ${color};
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 300px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            z-index: 10000;
+        `;
+        
+        toast.innerHTML = `${icon} ${message}`;
+        container.appendChild(toast);
+        
+        // Animate In
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Remove after 3s
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Sidebar Toggle Removed
+
+</script>
+{% endblock %}

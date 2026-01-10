@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WoodCraft | Modern Living{% endblock %}</title>
+    
+    <!-- Fonts: Inter & Playfair Display for Premium Look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    
+    <!-- Sticky Wrapper -->
+    <div class="sticky-wrapper">
+        <!-- Global Scroll Banner -->
+        {% if global_scroll_banner %}
+        <div style="background: {{ global_scroll_banner.background_color }}; color: {{ global_scroll_banner.text_color }}; overflow: hidden; white-space: nowrap; padding: 10px 0; font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif;">
+            <div style="display: inline-block; animation: scroll-left 20s linear infinite;">
+                <span style="padding: 0 50px;">{{ global_scroll_banner.content }}</span>
+                <span style="padding: 0 50px;">{{ global_scroll_banner.content }}</span>
+                <span style="padding: 0 50px;">{{ global_scroll_banner.content }}</span>
+                <span style="padding: 0 50px;">{{ global_scroll_banner.content }}</span>
+            </div>
+        </div>
+        <style>
+            @keyframes scroll-left {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+        </style>
+        {% endif %}
+    
+        <!-- Header -->
+        <header class="site-header">
+        {% block header_content %}
+            <div class="header-left">
+                <button class="icon-btn menu-trigger">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                    <span>Menu</span>
+                </button>
+                
+                <!-- Menu Dropdown -->
+                <div id="menuDropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; min-width: 260px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-radius: 12px; z-index: 1100; padding: 12px; border: 1px solid rgba(0,0,0,0.04); margin-top: 16px; transform-origin: top left; animation: menuFadeIn 0.2s ease-out;">
+                    <nav style="display: flex; flex-direction: column;">
+                        <a href="/" class="menu-item"><i class="fa-solid fa-house"></i> Home</a>
+                        <a href="/products" class="menu-item"><i class="fa-solid fa-bag-shopping"></i> Shop Collection</a>
+                        <a href="/categories" class="menu-item"><i class="fa-solid fa-layer-group"></i> Categories</a>
+                        <div style="height: 1px; background: #f5f5f5; margin: 8px 0;"></div>
+                        <a href="/account/dashboard" class="menu-item"><i class="fa-regular fa-user"></i> My Account</a>
+                        <a href="/cart" class="menu-item"><i class="fa-solid fa-cart-shopping"></i> Cart <span class="menu-badge">{{ cart_item_count|default:0 }}</span></a>
+                        <a href="/support" class="menu-item"><i class="fa-solid fa-headset"></i> Support</a>
+                    </nav>
+                </div>
+                <!-- Animation Styles for Menu -->
+                <style>
+                    @keyframes menuFadeIn {
+                        from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+                        to { opacity: 1; transform: translateY(0) scale(1); }
+                    }
+                </style>
+            </div>
+    
+            <div class="header-center">
+                <a href="/" class="brand-logo">AETHEREAL</a>
+            </div>
+            
+            <div class="header-right">
+                <!-- Inline Search Bar -->
+                <form action="/products/" method="GET" class="header-search-form">
+                    <button type="submit" class="search-btn-inline">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <input type="text" name="q" placeholder="Search..." class="search-input-inline" autocomplete="off">
+                </form>
+
+                <a href="/login" class="icon-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <a href="/cart" class="icon-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <div class="cart-count">{{ cart_item_count|default:0 }}</div>
+                    <span class="cart-label">Cart</span>
+                </a>
+            </div>
+        {% endblock %}
+        </header>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <!-- Footer -->
+    {% block footer_content %}
+    <footer class="site-footer">
+        <div class="footer-columns">
+            <div class="footer-col">
+                <h3>About Us</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Terms: Ethos & Staff</a></li>
+                    <li><a href="#">Customer Story</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Customer Care</h3>
+                <ul>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Care Guide</a></li>
+                    <li><a href="#">Eco-actions</a></li>
+                </ul>
+            </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px;"><a href="#">Contact Us</a></li>
+                        <li style="margin-bottom: 10px;"><a href="#">Legal</a></li>
+                        <li style="margin-bottom: 10px;"><a href="#">Privacy Policy</a></li>
+                        <li style="margin-top: 10px;"><a href="/admin/login" style="opacity: 0.7; font-size: 0.9em;">Admin Portal</a></li>
+                    </ul>
+                </div>
+            <div class="footer-col newsletter">
+                <h3>Newsletter Signup</h3>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Enter your email">
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </footer>
+    {% endblock %}
+
+
+    
+    <!-- Menu Overlay Backprop -->
+    <div id="menuBackdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2900;"></div>
+
+    <!-- Toast Notification (Global) -->
+    <div id="toast" style="display: none; position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 4px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.3s ease-in-out;">
+        <span id="toastMessage">Success</span>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Global Toast Function
+        window.showToast = function(msg, isError=false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            if(!toast || !toastMessage) return;
+
+            toastMessage.textContent = msg;
+            toast.style.background = isError ? '#d32f2f' : '#333';
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 3000);
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

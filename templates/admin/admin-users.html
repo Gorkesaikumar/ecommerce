@@ -1,0 +1,300 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Users | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="margin-bottom: 24px;">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Customers</h2>
+    <p style="color: #666; font-size: 14px;">View registered customer details.</p>
+</div>
+
+<!-- Stats & Top Customers Section -->
+<div style="display: grid; grid-template-columns: 240px 240px 1fr; gap: 24px; margin-bottom: 32px;">
+    <!-- Total Customers -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+        <p style="color: #666; font-size: 14px; margin-bottom: 8px;">Total Customers</p>
+        <h3 style="font-size: 32px; color: #1a1a1a; margin: 0;">{{ total_customers }}</h3>
+    </div>
+
+    <!-- Rare Shoppers -->
+    <a href="?filter=rare" style="text-decoration: none; cursor: pointer;">
+        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.04)'">
+            <p style="color: #666; font-size: 14px; margin-bottom: 8px;">Rare Shoppers</p>
+            <h3 style="font-size: 32px; color: #1a1a1a; margin: 0;">{{ rare_customers }}</h3>
+            <p style="color: #999; font-size: 12px; margin-top: 4px;">(1-2 Orders) - Click to View</p>
+        </div>
+    </a>
+    
+    <!-- Top Customers Scrollable Banner -->
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+        <p style="color: #666; font-size: 14px; margin-bottom: 12px;">Top Customers (3+ Orders)</p>
+        <div style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin;">
+            {% for customer in top_customers %}
+            <div style="min-width: 140px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                <div style="font-weight: 600; color: #2C2420; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ customer.name|default:'Unknown' }}</div>
+                <div style="color: #2e7d32; font-size: 12px; font-weight: 500;">
+                    <i class="fa-solid fa-bag-shopping" style="margin-right: 4px;"></i> {{ customer.order_count }} Orders
+                </div>
+            </div>
+            {% empty %}
+            <div style="color: #999; font-size: 14px; font-style: italic;">No top customers yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% if filter_active == 'rare' %}
+<div style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; background: #fff3e0; padding: 12px 16px; border-radius: 8px; border: 1px solid #ffe0b2;">
+    <div style="color: #e65100; font-weight: 500; font-size: 14px;">
+        <i class="fa-solid fa-filter" style="margin-right: 8px;"></i> Showing Rare Shoppers Only
+    </div>
+    <a href="?" style="color: #e65100; font-size: 12px; text-decoration: underline; font-weight: 600;">Clear Filter</a>
+</div>
+{% endif %}
+
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
+        <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Name</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Contact Info</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Role</th>
+                    <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Joined Date</th>
+                    <th style="padding: 16px 24px; text-align: right; font-size: 12px; text-transform: uppercase;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr style="border-bottom: 1px solid #f9f9f9;">
+                    <td style="padding: 16px 24px; font-weight: 500;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; background: #f3f0ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #673ab7; font-weight: 600;">
+                                {{ user.name|default:'U'|slice:":1" }}
+                            </div>
+                            {{ user.name|default:'Unknown' }}
+                        </div>
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        <div style="color: #333;">{{ user.email }}</div>
+                        <div style="font-size: 12px; color: #888;">{{ user.mobile_number }}</div>
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        {% if user.role == 'ADMIN' %}
+                        <span style="background: #e3f2fd; color: #1565c0; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Admin</span>
+                        {% else %}
+                        <span style="background: #f5f5f5; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Customer</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px 24px; color: #666;">{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td style="padding: 16px 24px; text-align: right;">
+                        {% if user.mobile_number %}
+                        <button onclick="openWhatsApp('{{ user.mobile_number }}')" class="btn-sm" style="background: none; border: 1px solid #25D366; color: #25D366; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;" title="Chat on WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+                        {% endif %}
+                        <button onclick="openEditModal('{{ user.id }}', '{{ user.name|escapejs }}', '{{ user.email|escapejs }}', '{{ user.mobile_number|escapejs }}', '{{ user.role }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
+                        {% if user.role != 'ADMIN' %}
+                        <button onclick="openDeleteModal('{{ user.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                        {% else %}
+                        <button disabled style="background: #f5f5f5; border: 1px solid #ddd; color: #aaa; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: not-allowed;">Delete</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 32px; text-align: center; color: #666;">
+                        <i class="fa-solid fa-users-slash" style="font-size: 24px; margin-bottom: 8px; display: block; color: #ccc;"></i>
+                        No customers found matching these criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <h3 style="margin-bottom: 24px; font-family: var(--font-heading);">Edit User</h3>
+        <form id="editUserForm" onsubmit="handleEditSubmit(event)">
+            <input type="hidden" id="editUserId">
+            <div style="margin-bottom: 20px;">
+                <label class="form-label">Name</label>
+                <input type="text" id="editName" class="form-input" placeholder="Enter full name">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label class="form-label">Email</label>
+                <input type="email" id="editEmail" class="form-input" placeholder="Enter email address">
+            </div>
+            <div style="margin-bottom: 24px;">
+                <label class="form-label">Mobile</label>
+                <input type="text" id="editMobile" class="form-input" placeholder="Enter mobile number">
+            </div>
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteUserModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 28px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Delete Customer?</h3>
+        <p style="color: #666; margin-bottom: 24px; line-height: 1.5;">This action is permanent. The customer's data and <strong>all their order history</strong> will be permanently deleted.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button id="confirmDeleteUserBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Permanently Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" style="position: fixed; top: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 12px;"></div>
+
+<!-- Templates for Toasts (Script builds them) -->
+
+<script>
+    let userToDelete = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Toast Logic moved to base_admin.html
+    // Using global window.showAdminToast
+
+    // Edit Modal Logic
+    function openEditModal(id, name, email, mobile, role) {
+        document.getElementById('editUserId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editMobile').value = mobile;
+        document.getElementById('editUserModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editUserModal').style.display = 'none';
+    }
+
+    async function handleEditSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('editUserId').value;
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Loading State
+        submitBtn.innerHTML = 'Saving...';
+        submitBtn.disabled = true;
+        
+        const data = {
+            name: document.getElementById('editName').value,
+            email: document.getElementById('editEmail').value,
+            mobile_number: document.getElementById('editMobile').value
+        };
+
+        try {
+            const response = await fetch(`/api/v1/auth/admin/users/${id}/role`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeEditModal();
+                showAdminToast('User profile updated successfully!', 'success');
+                setTimeout(() => location.reload(), 1500); // Reload after toast
+            } else {
+                const res = await response.json();
+                showAdminToast(res.error || 'Failed to update user', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            showAdminToast('Network error occurred', 'error');
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Delete Modal Logic
+    function openDeleteModal(id) {
+        userToDelete = id;
+        document.getElementById('deleteUserModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        userToDelete = null;
+        document.getElementById('deleteUserModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmDeleteUserBtn').onclick = async function() {
+        if (!userToDelete) return;
+        
+        const btn = document.getElementById('confirmDeleteUserBtn');
+        btn.innerHTML = 'Deleting...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/v1/auth/admin/users/${userToDelete}/role`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                closeDeleteModal();
+                showAdminToast('User deleted successfully.', 'delete');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                const data = await response.json();
+                showAdminToast(data.error || 'Failed to delete user', 'error');
+                btn.innerHTML = 'Permanently Delete';
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            showAdminToast('Error deleting user', 'error');
+            btn.innerHTML = 'Permanently Delete';
+            btn.disabled = false;
+        }
+    };
+    
+    // Close modals on outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('editUserModal')) {
+            closeEditModal();
+        }
+        if (event.target == document.getElementById('deleteUserModal')) {
+            closeDeleteModal();
+        }
+    }
+    // WhatsApp Logic
+    function openWhatsApp(phone) {
+        if (!phone) return;
+        let cleanPhone = phone.replace(/\D/g, ''); 
+        if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+    }
+</script>
+{% endblock %}

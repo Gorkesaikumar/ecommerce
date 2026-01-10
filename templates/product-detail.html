@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} | WoodCraft{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <!-- Left: Gallery -->
+    <div class="product-gallery">
+        {% if product.image_urls %}
+        <img src="{{ product.image_urls.0 }}" alt="{{ product.name }}">
+        {% else %}
+        <img src="/static/img/product1.jpg" alt="{{ product.name }}">
+        {% endif %}
+    </div>
+
+    <!-- Right: Info -->
+    <div class="product-info">
+        <nav class="breadcrumb">
+            <a href="/">Home</a> / 
+            <a href="{% url 'product-list-frontend' %}">Shop</a> / 
+            <span>{{ product.name }}</span>
+        </nav>
+
+        <h1 class="product-title">{{ product.name }}</h1>
+        <div class="product-price-lg" id="productPrice">₹{{ product.base_price }}</div>
+
+        <div class="product-description">
+            {% if product.description %}
+            {{ product.description|linebreaks }}
+            {% else %}
+            <p>Experience the perfect blend of form and function. This piece is crafted with meticulous attention to detail, designed to elevate your living space.</p>
+            {% endif %}
+        </div>
+
+        <!-- Dimensions Selection -->
+        <div class="dimension-box" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-family: 'Playfair Display', serif;">Dimensions</h4>
+                <button onclick="openCustomModal()" style="background: none; border: none; color: #C5A065; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: underline;">
+                     Own Customize?
+                </button>
+            </div>
+            
+            <div class="dimension-options" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <!-- Exact Dimensions -->
+                {% for dim in product.dimensions.all %}
+                <label class="dim-radio-label">
+                    <input type="radio" name="dimension" value="exact_{{ dim.id }}" data-price="{{ dim.price }}" {% if dim.is_default %}checked{% endif %} onchange="updatePrice(this)">
+                    <span class="dim-badge">
+                        {{ dim.length }}x{{ dim.breadth }}x{{ dim.height }} cm
+                    </span>
+                </label>
+                {% endfor %}
+
+                <!-- Range Dimensions (Fallback display) -->
+                {% for config in product.dimension_configs.all %}
+                    <div style="width: 100%; font-size: 12px; color: #888; margin-top: 4px;">
+                        * Custom sizes available: {{ config.min_length }}-{{ config.max_length }}cm (L)
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="actions">
+            {% if product.stock_quantity > 0 %}
+                <button class="btn btn-add-large" data-product-id="{{ product.id }}">Add to Cart</button>
+                
+                {% if product.stock_quantity <= 100 %}
+                <div style="margin-top: 12px; color: #ef6c00; font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    Hurry! Only {{ product.stock_quantity }} units left.
+                </div>
+                {% endif %}
+                
+                <div style="margin-top: 16px; font-size: 13px; color: var(--text-secondary); text-align: center;">
+                    Processing: 2-3 Business Days
+                </div>
+            {% else %}
+                <button class="btn btn-add-large" disabled style="background: #e0e0e0; color: #999; cursor: not-allowed; border: none;">Out of Stock</button>
+                <div style="margin-top: 12px; color: #d32f2f; font-weight: 500; text-align: center;">
+                    This item is currently unavailable.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Customization Request Modal -->
+<div id="customizeModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 24px; color: #2C2420; margin-bottom: 8px;">Request Customization</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 24px;">Enter your desired dimensions. Our team will review and get back to you with a quote.</p>
+        
+        <form onsubmit="handleCustomizeSubmit(event)">
+            <input type="hidden" id="custProductId" value="{{ product.id }}">
+            
+            <div class="form-grid-3" style="margin-bottom: 16px;">
+                <div>
+                    <label class="form-label">Length (cm) <span style="color: red">*</span></label>
+                    <input type="number" id="reqL" class="form-input" required min="1" step="0.1">
+                </div>
+                <div>
+                    <label class="form-label">Breadth (cm) <span style="color: red">*</span></label>
+                    <input type="number" id="reqB" class="form-input" required min="1" step="0.1">
+                </div>
+                <div>
+                    <label class="form-label">Height (cm) <span style="color: red">*</span></label>
+                    <input type="number" id="reqH" class="form-input" required min="1" step="0.1">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label class="form-label">Your Name <span style="color: red">*</span></label>
+                <input type="text" id="reqName" class="form-input" required value="{{ request.user.first_name }} {{ request.user.last_name }}">
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 16px;">
+                 <div>
+                    <label class="form-label">Email <span style="color: red">*</span></label>
+                    <input type="email" id="reqEmail" class="form-input" required value="{{ request.user.email }}">
+                </div>
+                <div>
+                    <label class="form-label">Phone <span style="color: red">*</span></label>
+                    <input type="tel" id="reqPhone" class="form-input" required value="{{ request.user.mobile_number }}">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label class="form-label">Additional Requirements</label>
+                <textarea id="reqMsg" class="form-input" rows="2" placeholder="Tell us more about your needs..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="closeCustomModal()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .dim-radio-label { cursor: pointer; }
+    .dim-radio-label input { display: none; }
+    .dim-badge { 
+        display: inline-block; padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; 
+        font-size: 14px; color: #555; transition: all 0.2s; 
+    }
+    .dim-radio-label input:checked + .dim-badge {
+        background: #2C2420; color: white; border-color: #2C2420;
+    }
+    .form-input { 
+        width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-top: 4px; 
+    }
+    .form-input:focus { outline: none; border-color: #C5A065; }
+    .form-label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // --- Price Update Logic ---
+    function updatePrice(radio) {
+        const price = radio.dataset.price;
+        if(price) {
+            document.getElementById('productPrice').innerText = '₹' + parseFloat(price).toFixed(2);
+        }
+    }
+
+    // --- Modal Logic ---
+    function openCustomModal() {
+        document.getElementById('customizeModal').style.display = 'flex';
+    }
+
+    function closeCustomModal() {
+        document.getElementById('customizeModal').style.display = 'none';
+    }
+
+    window.onclick = function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            closeCustomModal();
+        }
+    }
+
+    async function handleCustomizeSubmit(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Sending...';
+        btn.disabled = true;
+
+        const data = {
+            product: document.getElementById('custProductId').value,
+            length: parseFloat(document.getElementById('reqL').value),
+            breadth: parseFloat(document.getElementById('reqB').value),
+            height: parseFloat(document.getElementById('reqH').value),
+            name: document.getElementById('reqName').value,
+            email: document.getElementById('reqEmail').value,
+            phone: document.getElementById('reqPhone').value,
+            message: document.getElementById('reqMsg').value
+        };
+
+        try {
+            const response = await fetch('/api/v1/products/customize-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeCustomModal();
+                e.target.reset();
+                showSuccessModal();
+            } else {
+                const err = await response.json();
+                console.error(err);
+                alert('Failed to send request. Please check inputs.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Network error. Please try again.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+    
+    function showSuccessModal() {
+        document.getElementById('customSuccessModal').style.display = 'flex';
+    }
+    
+    function closeSuccessModal() {
+        document.getElementById('customSuccessModal').style.display = 'none';
+    }
+</script>
+
+<!-- Success Modal -->
+<div id="customSuccessModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2001; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+        <div style="width: 60px; height: 60px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fa-solid fa-check" style="font-size: 30px; color: #388e3c;"></i>
+        </div>
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 24px; color: #2C2420; margin-bottom: 12px;">Request Submitted</h3>
+        <p style="color: #555; font-size: 15px; line-height: 1.5; margin-bottom: 24px;">
+            Your customization request has been received.
+            <br><br>
+            <strong>What's Next?</strong><br>
+            • Please wait up to <strong>24 hours</strong> for admin approval.<br>
+            • If approved, we will deliver within <strong>7 days</strong>.<br>
+            • Admin will reach out if any clarification is needed.
+        </p>
+        <button onclick="closeSuccessModal()" class="btn btn-primary" style="width: 100%;">Okay, Got it</button>
+    </div>
+</div>
+{% endblock %}

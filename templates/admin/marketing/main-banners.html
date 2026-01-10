@@ -1,0 +1,313 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Main Banners | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Main Banners</h2>
+        <p style="color: #666; font-size: 14px;">Manage hero section banners.</p>
+    </div>
+    <button onclick="openModal()" class="btn btn-primary">
+        <i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Add Banner
+    </button>
+</div>
+
+<!-- Banner List -->
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Banner</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Title / Subtitle</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Redirect</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Priority</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Status</th>
+                <th style="padding: 16px 24px; text-align: right; font-size: 12px; text-transform: uppercase;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for banner in banners %}
+            <tr style="border-bottom: 1px solid #f9f9f9;">
+                <td style="padding: 16px 24px;">
+                    <img src="{{ banner.image_url }}" alt="Banner" style="width: 120px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #eee;">
+                </td>
+                <td style="padding: 16px 24px;">
+                    <div style="font-weight: 600; color: #333;">{{ banner.title|default:'-' }}</div>
+                    <div style="font-size: 12px; color: #888;">{{ banner.subtitle|default:'' }}</div>
+                </td>
+                <td style="padding: 16px 24px; color: #666; font-size: 13px;">
+                    {{ banner.redirect_url }}
+                    <div style="font-size: 11px; color: #999;">CTA: {{ banner.cta_text }}</div>
+                </td>
+                <td style="padding: 16px 24px;">{{ banner.priority }}</td>
+                <td style="padding: 16px 24px;">
+                    {% if banner.is_active %}
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Active</span>
+                    {% else %}
+                    <span style="background: #f5f5f5; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 16px 24px; text-align: right;">
+                    <button onclick="openModal('{{ banner.id }}', '{{ banner.image_url|escapejs }}', '{{ banner.title|default:''|escapejs }}', '{{ banner.subtitle|default:''|escapejs }}', '{{ banner.cta_text|escapejs }}', '{{ banner.redirect_url|escapejs }}', '{{ banner.priority }}', '{{ banner.is_active|yesno:'true,false' }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
+                    <button onclick="openDeleteModal('{{ banner.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="padding: 32px; text-align: center; color: #666;">No main banners found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="bannerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <h3 id="modalTitle" style="margin-bottom: 24px; font-family: var(--font-heading);">Add Main Banner</h3>
+        <form id="bannerForm" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="bannerId">
+            
+            <div style="margin-bottom: 20px;">
+                <label class="form-label">Image URL</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="bannerImage" class="form-input" required placeholder="https://... or /media/..." style="flex: 1;">
+                    <button type="button" onclick="document.getElementById('bannerFileUpload').click()" class="btn btn-secondary" style="padding: 0 16px;" title="Upload Image">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <input type="file" id="bannerFileUpload" style="display: none;" accept="image/*" onchange="handleFileUpload(this, 'bannerImage')">
+                </div>
+                <p style="font-size: 12px; color: #999; margin-top: 4px;">Recommended size: 1920x600px</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">Title (Optional)</label>
+                    <input type="text" id="bannerTitle" class="form-input" placeholder="Summer Sale">
+                </div>
+                <div>
+                    <label class="form-label">Subtitle (Optional)</label>
+                    <input type="text" id="bannerSubtitle" class="form-input" placeholder="Up to 50% Off">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">CTA Text</label>
+                    <input type="text" id="bannerCta" class="form-input" value="Shop Now">
+                </div>
+                <div>
+                    <label class="form-label">Redirect URL</label>
+                    <input type="text" id="bannerRedirect" class="form-input" placeholder="/products">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div>
+                    <label class="form-label">Priority</label>
+                    <input type="number" id="bannerPriority" class="form-input" value="0">
+                </div>
+                <div>
+                    <label class="form-label">Status</label>
+                    <select id="bannerStatus" class="form-input">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Banner</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-trash" style="font-size: 24px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Delete Banner?</h3>
+        <p style="color: #666; margin-bottom: 24px;">Are you sure you want to delete this main banner?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button id="confirmDeleteBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Confirm Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deleteId = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openModal(id=null, image='', title='', subtitle='', cta='Shop Now', redirect='', priority='0', isActive='true') {
+        const modal = document.getElementById('bannerModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const form = document.getElementById('bannerForm');
+        
+        if (id) {
+            modalTitle.innerText = 'Edit Main Banner';
+            document.getElementById('bannerId').value = id;
+            document.getElementById('bannerImage').value = image;
+            document.getElementById('bannerTitle').value = title;
+            document.getElementById('bannerSubtitle').value = subtitle;
+             document.getElementById('bannerCta').value = cta;
+             document.getElementById('bannerRedirect').value = redirect;
+            document.getElementById('bannerPriority').value = priority;
+            document.getElementById('bannerStatus').value = isActive;
+        } else {
+            modalTitle.innerText = 'Add Main Banner';
+            form.reset();
+            document.getElementById('bannerId').value = '';
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('bannerModal').style.display = 'none';
+    }
+
+    async function handleFileUpload(input, targetId) {
+        if (!input.files || !input.files[0]) return;
+        
+        const file = input.files[0];
+        
+        // 100KB Limit Check
+        if (file.size > 100 * 1024) {
+            window.showAdminToast('File is too large (Max 100KB)', 'error');
+            input.value = ''; // Reset
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Show loading state
+        const btn = input.previousElementSibling;
+        const originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/v1/promotions/upload/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById(targetId).value = data.url;
+                window.showAdminToast('Image uploaded successfully', 'success');
+            } else {
+                window.showAdminToast('Upload failed', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            window.showAdminToast('Network error during upload', 'error');
+        } finally {
+            // Restore button
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
+            input.value = ''; // Reset input
+        }
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('bannerId').value;
+        const url = id ? `/api/v1/promotions/admin/main-banners/${id}/` : '/api/v1/promotions/admin/main-banners/';
+        const method = id ? 'PATCH' : 'POST';
+        
+        const data = {
+            image_url: document.getElementById('bannerImage').value,
+            title: document.getElementById('bannerTitle').value,
+            subtitle: document.getElementById('bannerSubtitle').value,
+            cta_text: document.getElementById('bannerCta').value,
+            redirect_url: document.getElementById('bannerRedirect').value,
+            priority: parseInt(document.getElementById('bannerPriority').value),
+            is_active: document.getElementById('bannerStatus').value === 'true'
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeModal();
+                window.showAdminToast(id ? 'Banner updated' : 'Banner created', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                 window.showAdminToast('Error saving banner', 'error');
+            }
+        } catch (error) {
+            window.showAdminToast('Network error', 'error');
+        }
+    }
+
+    function openDeleteModal(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        deleteId = null;
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+        if (!deleteId) return;
+        
+        try {
+            const response = await fetch(`/api/v1/promotions/admin/main-banners/${deleteId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                closeDeleteModal();
+                window.showAdminToast('Banner deleted', 'delete');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                window.showAdminToast('Failed to delete', 'error');
+            }
+        } catch (error) {
+            window.showAdminToast('Error deleting', 'error');
+        }
+    };
+    
+    // Close on outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('bannerModal')) closeModal();
+        if (event.target == document.getElementById('deleteModal')) closeDeleteModal();
+    }
+</script>
+{% endblock %}

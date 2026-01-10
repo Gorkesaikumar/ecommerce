@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | Aethereal{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height: 85vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(to bottom, #fdfbf7, #f5f0e6);">
+    <div style="width: 100%; max-width: 440px; text-align: center;">
+        <h1 style="font-family: 'Playfair Display', serif; margin-bottom: 12px; font-size: 38px; color: #2C2420;">Welcome Back</h1>
+        <p style="color: #666; margin-bottom: 48px; font-size: 15px; letter-spacing: 0.5px;">Enter your mobile number to access your account.</p>
+        
+        <div style="background: white; padding: 60px 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); text-align: left; border: 1px solid rgba(0,0,0,0.02);">
+            <form id="mobileForm">
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999;">Mobile Number</label>
+                    <div style="display: flex; gap: 12px;">
+                        <span style="padding: 18px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; color: #666; font-size: 16px; font-weight: 500;">+91</span>
+                        <input type="tel" id="mobileInput" placeholder="98765 43210" required pattern="[0-9]{10}" style="flex: 1; padding: 18px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 16px; background: #fafafa; transition: all 0.3s ease; width: 100%;">
+                    </div>
+                </div>
+                
+                <div id="loginError" style="color: #d32f2f; margin-bottom: 24px; font-size: 14px; display: none; background: #ffebee; padding: 12px; border-radius: 4px;"></div>
+                
+                <button type="submit" class="btn" style="width: 100%; padding: 20px; background: #2C2420; color: white; font-size: 15px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; border-radius: 6px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(44, 36, 32, 0.2);">
+                    Continue
+                </button>
+                
+                <p style="margin-top: 24px; font-size: 12px; color: #999; text-align: center; line-height: 1.5;">
+                    By continuing, you agree to our Terms of Use and Privacy Policy.
+                </p>
+            </form>
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <a href="/" style="color: #999; text-decoration: none; font-size: 13px; border-bottom: 1px solid transparent; transition: border 0.3s;">
+                &larr; Return to Store
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

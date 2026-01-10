@@ -1,0 +1,105 @@
+<aside class="admin-sidebar" style="background: #ffffff; padding: 24px; border-right: 1px solid #f0f0f0; height: calc(100vh - 80px); position: sticky; top: 80px; width: 260px; display: flex; flex-direction: column; overflow-y: auto;">
+    <div style="margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid #f5f5f5;">
+        <h3 style="font-family: var(--font-heading); margin-bottom: 4px; color: #2C2420; letter-spacing: 0.5px;">Admin Portal</h3>
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #999;">Aethereal Management</div>
+    </div>
+    
+    <ul style="list-style: none; flex: 1;">
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/dashboard" class="admin-nav-item {% if 'dashboard' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-chart-line" style="width: 20px; text-align: center;"></i> 
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/orders" class="admin-nav-item {% if 'orders' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-box" style="width: 20px; text-align: center;"></i> 
+                <span>Orders</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/products" class="admin-nav-item {% if 'products' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-couch" style="width: 20px; text-align: center;"></i> 
+                <span>Products</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/inventory" class="admin-nav-item {% if 'inventory' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-clipboard-list" style="width: 20px; text-align: center;"></i> 
+                <span>Inventory</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/customize-requests" class="admin-nav-item {% if 'customize-requests' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="width: 20px; text-align: center;"></i> 
+                <span>Customize Requests</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="{% url 'admin-categories' %}" class="admin-nav-item {% if 'categories' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-list" style="width: 20px; text-align: center;"></i> 
+                <span>Categories</span>
+            </a>
+            
+            <div style="margin-top: 24px; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; color: #888; font-weight: 600; letter-spacing: 0.5px; padding-left: 12px;">Marketing</div>
+            
+            <a href="{% url 'admin-scroll-banners' %}" class="admin-nav-item {% if 'scroll-banners' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-scroll" style="width: 20px; text-align: center;"></i>
+                <span>Scroll Banners</span>
+            </a>
+            
+            <a href="{% url 'admin-main-banners' %}" class="admin-nav-item {% if 'main-banners' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-image" style="width: 20px; text-align: center;"></i>
+                <span>Main Banners</span>
+            </a>
+            
+            <a href="{% url 'admin-promotions' %}" class="admin-nav-item {% if 'promotions' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-bullhorn" style="width: 20px; text-align: center;"></i>
+                <span>Promotions</span>
+            </a>
+
+            <a href="{% url 'admin-promocodes' %}" class="admin-nav-item {% if 'promocodes' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-ticket" style="width: 20px; text-align: center;"></i>
+                <span>Coupons & Offers</span>
+            </a>
+
+            <div style="margin-top: 24px; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; color: #888; font-weight: 600; letter-spacing: 0.5px; padding-left: 12px;">Analytics</div>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/users" class="admin-nav-item {% if 'users' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-users" style="width: 20px; text-align: center;"></i> 
+                <span>Customers</span>
+            </a>
+        </li>
+        <li style="margin-bottom: 4px;">
+            <a href="/admin/reports" class="admin-nav-item {% if 'reports' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-poll" style="width: 20px; text-align: center;"></i> 
+                <span>Reports</span>
+            </a>
+        </li>
+    </ul>
+
+    <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid #f5f5f5;">
+        <a href="/logout" class="admin-nav-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #d32f2f; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+            <i class="fa-solid fa-arrow-right-from-bracket" style="width: 20px; text-align: center;"></i> 
+            <span>Logout</span>
+        </a>
+    </div>
+
+    <style>
+        .admin-nav-item:hover {
+            background: #fcfcfc;
+            color: #2C2420 !important;
+        }
+        .admin-nav-item.active {
+            background: #fcfcfc;
+            color: #2C2420 !important;
+            font-weight: 600;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .admin-nav-item.active i {
+            color: #C5A065; /* Brand Gold */
+        }
+    </style>
+</aside>

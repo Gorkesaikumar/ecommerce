@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header">
+        <h2>Search Results for "{{ query }}"</h2>
+        <p style="color: var(--text-secondary); margin-top: 8px;">{{ products.count }} items found</p>
+    </div>
+
+    <div class="product-grid">
+        {% for product in products %}
+        <a href="{% url 'product-detail-slug-frontend' product.slug|default:product.id %}" class="product-card">
+            <div class="product-image">
+                {% if product.image_urls %}
+                <img src="{{ product.image_urls.0 }}" alt="{{ product.name }}">
+                {% else %}
+                <img src="/static/img/product1.jpg" alt="Product">
+                {% endif %}
+            </div>
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price-row">
+                <div class="price">₹{{ product.base_price }}</div>
+                <button class="btn-add-mini" title="Add to Cart" data-product-id="{{ product.id }}">+</button>
+            </div>
+        </a>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 100px 0;">
+            <p style="font-size: 18px; color: var(--text-secondary);">No products match your search.</p>
+            <a href="/products/" class="btn btn-primary" style="margin-top: 20px;">View All Products</a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

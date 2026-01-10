@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmed | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section" style="text-align: center; padding: 100px 20px;">
+    <div style="width: 80px; height: 80px; background: #4CAF50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px;">✓</div>
+    <h1 style="font-family: var(--font-heading); margin-bottom: 16px;">Order Confirmed!</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 32px;">Thank you for your purchase. We have received your order.</p>
+    
+    {% if request.GET.order_id %}
+    <div style="background: #F9F9F9; display: inline-block; padding: 12px 24px; border-radius: 4px; margin-bottom: 40px; font-family: monospace; font-size: 16px;">
+        Order ID: {{ request.GET.order_id }}
+    </div>
+    {% endif %}
+
+    <div>
+        <a href="/" class="btn btn-secondary">Continue Shopping</a>
+    </div>
+</section>
+{% endblock %}

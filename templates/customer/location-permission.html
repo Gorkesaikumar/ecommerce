@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Location Permission | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section" style="text-align: center; padding: 100px 20px;">
+    <div style="width: 80px; height: 80px; background: #F0EBE0; color: var(--text-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px;">📍</div>
+    <h1 style="font-family: var(--font-heading); margin-bottom: 16px;">We need your location</h1>
+    <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 32px;">To ensure we can deliver to your area and show you the correct products and pricing, please allow location access.</p>
+    
+    <div>
+        <button id="allowLocation" class="btn btn-primary">Allow Access</button>
+        <div style="margin-top: 16px;">
+            <a href="/" class="btn btn-secondary" style="border: none;">Back to Home</a>
+        </div>
+    </div>
+    
+    <div id="locStatus" style="margin-top: 24px; font-size: 14px; color: var(--text-secondary);"></div>
+</section>
+
+<script>
+    document.getElementById('allowLocation').addEventListener('click', () => {
+        const status = document.getElementById('locStatus');
+        status.textContent = "Requesting access...";
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    status.textContent = "Location verified! Redirecting...";
+                    // Here we would typically send coords to backend API
+                    // For now, let's redirect to dashboard or home
+                    setTimeout(() => window.location.href = '/', 1000);
+                },
+                (error) => {
+                    status.textContent = "Access denied or unavailable. Please enable permissions.";
+                    status.style.color = "red";
+                }
+            );
+        } else {
+            status.textContent = "Geolocation is not supported by this browser.";
+        }
+    });
+</script>
+{% endblock %}

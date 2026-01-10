@@ -1,0 +1,361 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Promotions | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Promotions</h2>
+        <p style="color: #666; font-size: 14px;">Manage carousel promotions.</p>
+    </div>
+    <button onclick="openModal()" class="btn btn-primary">
+        <i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Add Promotion
+    </button>
+</div>
+
+<!-- Promotion List -->
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Image</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Title / Subtitle</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Redirect</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Priority</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Status</th>
+                <th style="padding: 16px 24px; text-align: right; font-size: 12px; text-transform: uppercase;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pm in promotions %}
+            <tr style="border-bottom: 1px solid #f9f9f9;">
+                <td style="padding: 16px 24px;">
+                    <img src="{{ pm.image_url }}" alt="Promo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #eee;">
+                </td>
+                <td style="padding: 16px 24px;">
+                    <div style="font-weight: 600; color: #333;">{{ pm.title|default:'-' }}</div>
+                    <div style="font-size: 12px; color: #888;">{{ pm.subtitle|default:'' }}</div>
+                </td>
+                <td style="padding: 16px 24px; color: #666; font-size: 13px;">
+                    {{ pm.redirect_url }}
+                </td>
+                <td style="padding: 16px 24px;">{{ pm.priority }}</td>
+                <td style="padding: 16px 24px;">
+                    {% if pm.is_active %}
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Active</span>
+                    {% else %}
+                    <span style="background: #f5f5f5; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 16px 24px; text-align: right;">
+                    <button onclick="openModal('{{ pm.id }}', '{{ pm.image_url|escapejs }}', '{{ pm.title|default:''|escapejs }}', '{{ pm.subtitle|default:''|escapejs }}', '{{ pm.redirect_url|escapejs }}', '{{ pm.priority }}', '{{ pm.is_active|yesno:'true,false' }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
+                    <button onclick="openDeleteModal('{{ pm.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="padding: 32px; text-align: center; color: #666;">No promotions found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="promoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <h3 id="modalTitle" style="margin-bottom: 24px; font-family: var(--font-heading);">Add Promotions</h3>
+        <form id="promoForm" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="promoId">
+            
+            <div id="slidesContainer">
+                <!-- Dynamic Slides will be inserted here -->
+            </div>
+
+            <div style="margin-top: 16px; margin-bottom: 24px;">
+                <button type="button" onclick="addSlideRow()" id="addSlideBtn" class="btn btn-secondary" style="width: 100%; border-style: dashed;">
+                    <i class="fa-solid fa-plus"></i> Add Another Slide
+                </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div>
+                    <label class="form-label">Priority (Base)</label>
+                    <input type="number" id="promoPriority" class="form-input" value="0">
+                </div>
+                <div>
+                    <label class="form-label">Status</label>
+                    <select id="promoStatus" class="form-input">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden File Input for reuse -->
+<input type="file" id="globalFileUpload" style="display: none;" accept="image/*">
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-trash" style="font-size: 24px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Delete Promotion?</h3>
+        <p style="color: #666; margin-bottom: 24px;">Are you sure you want to delete this promotion?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button id="confirmDeleteBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Confirm Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal (Custom Popup) -->
+<div id="errorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1100; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Attention</h3>
+        <p id="errorModalMessage" style="color: #666; margin-bottom: 24px;">Error message here.</p>
+        <button onclick="document.getElementById('errorModal').style.display='none'" class="btn btn-primary" style="width: 100%;">OK</button>
+    </div>
+</div>
+
+<script>
+    let deleteId = null;
+    let currentUploadTarget = null;
+    let currentUploadBtn = null;
+
+    // Handle Global File Input
+    document.getElementById('globalFileUpload').onchange = async function(e) {
+        if (!e.target.files || !e.target.files[0]) return;
+        if (!currentUploadTarget || !currentUploadBtn) return;
+
+        const file = e.target.files[0];
+        
+        // 100KB Limit Check with Popup
+        if (file.size > 100 * 1024) {
+            showErrorModal('File is too large! Maximum size is 100KB.');
+            e.target.value = ''; // Reset
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Loader
+        const originalIcon = currentUploadBtn.innerHTML;
+        currentUploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        currentUploadBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/v1/promotions/upload/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                currentUploadTarget.value = data.url;
+                window.showAdminToast('Image uploaded', 'success');
+            } else {
+                const err = await response.json();
+                window.showAdminToast(err.error || 'Upload failed', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            window.showAdminToast('Error uploading', 'error');
+        } finally {
+            currentUploadBtn.innerHTML = originalIcon;
+            currentUploadBtn.disabled = false;
+            e.target.value = ''; // Reset
+        }
+    };
+
+    function triggerUpload(inputDetails) {
+        // Find the input element in the same row
+        const row = inputDetails.closest('.slide-row');
+        currentUploadTarget = row.querySelector('.image-url-input');
+        currentUploadBtn = inputDetails;
+        document.getElementById('globalFileUpload').click();
+    }
+
+    function addSlideRow(image='', title='', subtitle='', redirect='') {
+        const container = document.getElementById('slidesContainer');
+        const index = container.children.length;
+        
+        const row = document.createElement('div');
+        row.className = 'slide-row';
+        row.style.cssText = 'background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #eee; position: relative;';
+        
+        row.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" class="remove-btn" style="position: absolute; top: 10px; right: 10px; border: none; background: none; color: #d32f2f; cursor: pointer; ${index === 0 ? 'display:none;' : ''}" title="Remove Slide">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <div style="margin-bottom: 16px;">
+                <label class="form-label">Image URL</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="form-input image-url-input" value="${image}" required placeholder="https://... or /media/..." style="flex: 1;">
+                    <button type="button" onclick="triggerUpload(this)" class="btn btn-secondary" style="padding: 0 16px;" title="Upload Image">
+                        <i class="fa-solid fa-upload"></i>
+                    </button>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <input type="text" class="form-input title-input" value="${title}" placeholder="Title">
+                <input type="text" class="form-input subtitle-input" value="${subtitle}" placeholder="Subtitle">
+            </div>
+            <input type="text" class="form-input redirect-input" value="${redirect}" placeholder="Redirect URL (e.g. /products)">
+        `;
+        container.appendChild(row);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openModal(id=null, image='', title='', subtitle='', redirect='', priority='0', isActive='true') {
+        const modal = document.getElementById('promoModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const form = document.getElementById('promoForm');
+        const container = document.getElementById('slidesContainer');
+        container.innerHTML = ''; // Clear
+
+        document.getElementById('promoId').value = id || '';
+        document.getElementById('promoPriority').value = priority;
+        document.getElementById('promoStatus').value = isActive;
+
+        if (id) {
+            modalTitle.innerText = 'Edit Promotion';
+            document.getElementById('addSlideBtn').style.display = 'none'; // Editing single item
+            addSlideRow(image, title, subtitle, redirect);
+            // Hide remove btn for single edit
+            container.querySelector('.remove-btn').style.display = 'none';
+        } else {
+            modalTitle.innerText = 'Add Promotions (Carousel)';
+            document.getElementById('addSlideBtn').style.display = 'block';
+            addSlideRow(); // Add one empty
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('promoModal').style.display = 'none';
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('promoId').value;
+        const priorityBase = parseInt(document.getElementById('promoPriority').value);
+        const isActive = document.getElementById('promoStatus').value === 'true';
+        
+        const rows = document.getElementById('slidesContainer').children;
+        const payload = [];
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            payload.push({
+                image_url: row.querySelector('.image-url-input').value,
+                title: row.querySelector('.title-input').value,
+                subtitle: row.querySelector('.subtitle-input').value,
+                redirect_url: row.querySelector('.redirect-input').value,
+                priority: priorityBase, // Could decrement for order if needed, but keeping simple
+                is_active: isActive
+            });
+        }
+
+        const url = id ? `/api/v1/promotions/admin/promotions/${id}/` : '/api/v1/promotions/admin/promotions/';
+        const method = id ? 'PATCH' : 'POST';
+        const body = id ? JSON.stringify(payload[0]) : JSON.stringify(payload); // Edit=Obj, Create=Array
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: body
+            });
+
+            if (response.ok) {
+                closeModal();
+                window.showAdminToast(id ? 'Promotion updated' : 'Promotions created', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                 console.error(await response.json());
+                 window.showAdminToast('Error saving promotion', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            window.showAdminToast('Network error', 'error');
+        }
+    }
+
+    function openDeleteModal(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        deleteId = null;
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+        if (!deleteId) return;
+        
+        try {
+            const response = await fetch(`/api/v1/promotions/admin/promotions/${deleteId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                closeDeleteModal();
+                window.showAdminToast('Promotion deleted', 'delete');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                window.showAdminToast('Failed to delete', 'error');
+            }
+        } catch (error) {
+            window.showAdminToast('Error deleting', 'error');
+        }
+    };
+    
+    function showErrorModal(message) {
+        document.getElementById('errorModalMessage').innerText = message;
+        document.getElementById('errorModal').style.display = 'flex';
+    }
+
+    // Close on outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('promoModal')) closeModal();
+        if (event.target == document.getElementById('deleteModal')) closeDeleteModal();
+        if (event.target == document.getElementById('errorModal')) document.getElementById('errorModal').style.display = 'none';
+    }
+</script>
+{% endblock %}

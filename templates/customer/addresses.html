@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}Addresses | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="dashboard-layout">
+        {% include 'customer/sidebar.html' %}
+
+        <main>
+            <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-family: var(--font-heading);">Saved Addresses</h2>
+                <button onclick="openModal()" class="btn btn-secondary">+ Add New</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
+                {% for address in addresses %}
+                <!-- Address Card -->
+                <div style="border: 1px solid {% if address.is_default %}#2C2420{% else %}#eee{% endif %}; border-radius: 8px; padding: 24px; position: relative; background: white;">
+                    {% if address.is_default %}
+                    <span style="position: absolute; top: 12px; right: 12px; font-size: 12px; background: #2C2420; color: white; padding: 2px 8px; border-radius: 4px;">Default</span>
+                    {% endif %}
+                    
+                    <h4 style="margin-bottom: 12px; font-weight: 600;">{{ address.city }}</h4>
+                    <p style="color: var(--text-secondary); line-height: 1.6; font-size: 14px; margin-bottom: 20px;">
+                        {{ address.line1 }}<br>
+                        {{ address.city }}, {{ address.state }} - {{ address.zip_code }}
+                    </p>
+                    
+                    <div style="display: flex; gap: 16px; font-size: 13px;">
+                        <button onclick='editAddress({{ address.id }})' style="text-decoration: underline; background: none; border: none; cursor: pointer; padding: 0;">Edit</button>
+                        <button onclick="confirmDelete({{ address.id }})" style="color: #d32f2f; background: none; border: none; cursor: pointer; padding: 0;">Delete</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">
+                    No addresses saved yet.
+                </div>
+                {% endfor %}
+
+                <!-- Add New Placeholder -->
+                <div onclick="openModal()" style="border: 1px dashed #DDD; border-radius: 8px; display: flex; align-items: center; justify-content: center; min-height: 200px; cursor: pointer; color: var(--text-secondary); flex-direction: column; gap: 12px; transition: border-color 0.2s;">
+                    <span style="font-size: 24px;">+</span>
+                    <span>Add New Address</span>
+                </div>
+            </div>
+        </main>
+    </div>
+</section>
+
+<!-- Address Modal (Add/Edit) -->
+<div id="addressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 8px; width: 100%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <h3 id="modalTitle" style="margin-bottom: 24px;">Add New Address</h3>
+        <form id="addressForm">
+            <input type="hidden" id="addressId">
+            <div class="form-group">
+                <label>Address Line 1</label>
+                <input type="text" id="line1" required class="form-input" placeholder="House No, Street, Colony">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="city" required class="form-input" placeholder="City">
+                </div>
+                <div class="form-group">
+                    <label>Zip Code</label>
+                    <input type="text" id="zip_code" required class="form-input" placeholder="Pincode">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 16px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="is_default">
+                <label for="is_default" style="margin: 0; cursor: pointer;">Set as Default Address</label>
+            </div>
+
+            <div style="margin-top: 32px; display: flex; gap: 16px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save Address</button>
+                <button type="button" onclick="closeModal()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
+        <h3 style="margin-bottom: 16px; color: #d32f2f;">Delete Address?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">Are you sure you want to remove this address? This action cannot be undone.</p>
+        
+        <div style="display: flex; gap: 16px;">
+            <button id="confirmDeleteBtn" class="btn btn-primary" style="flex: 1; background-color: #d32f2f; border-color: #d32f2f;">Delete</button>
+            <button onclick="closeDeleteModal()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const modal = document.getElementById('addressModal');
+    const deleteModal = document.getElementById('deleteModal');
+    const form = document.getElementById('addressForm');
+    
+    let isEditing = false;
+    let addressToDelete = null;
+
+    // showToast is now global in base.html
+
+    function openModal() {
+        isEditing = false;
+        document.getElementById('modalTitle').textContent = 'Add New Address';
+        form.reset();
+        document.getElementById('addressId').value = '';
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+    
+    function closeDeleteModal() {
+        deleteModal.style.display = 'none';
+        addressToDelete = null;
+    }
+
+    window.editAddress = function(id) { 
+        openModal();
+        isEditing = true;
+        document.getElementById('modalTitle').textContent = 'Edit Address';
+        document.getElementById('addressId').value = id;
+        
+        form.style.opacity = '0.5';
+        
+        fetch(`/api/v1/addresses/${id}/`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('line1').value = data.line1;
+            document.getElementById('city').value = data.city;
+            document.getElementById('zip_code').value = data.zip_code;
+            document.getElementById('is_default').checked = data.is_default;
+            form.style.opacity = '1';
+        })
+        .catch(err => {
+             alert('Error fetching address');
+             closeModal();
+        });
+    }
+
+    window.confirmDelete = function(id) {
+        addressToDelete = id;
+        deleteModal.style.display = 'flex';
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        if(!addressToDelete) return;
+
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true;
+        btn.innerHTML = 'Deleting...';
+        
+        const csrftoken = getCookie('csrftoken');
+        try {
+            const res = await fetch(`/api/v1/addresses/${addressToDelete}/`, {
+                method: 'DELETE',
+                headers: { 'X-CSRFToken': csrftoken }
+            });
+            if(res.ok) {
+                closeDeleteModal();
+                showToast('Address deleted successfully');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                alert('Failed to delete address');
+                btn.disabled = false;
+                btn.innerHTML = 'Delete';
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Error deleting address');
+            btn.disabled = false;
+            btn.innerHTML = 'Delete';
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('addressId').value;
+        const data = {
+            line1: document.getElementById('line1').value,
+            city: document.getElementById('city').value,
+            zip_code: document.getElementById('zip_code').value,
+            is_default: document.getElementById('is_default').checked
+        };
+        
+        const csrftoken = getCookie('csrftoken');
+        const url = isEditing ? `/api/v1/addresses/${id}/` : '/api/v1/addresses/';
+        const method = isEditing ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok) {
+                closeModal();
+                showToast(isEditing ? 'Address updated successfully' : 'Address added successfully');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                const err = await res.json();
+                alert('Error: ' + JSON.stringify(err));
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Network error');
+        }
+    });
+
+    // Close on click outside
+    window.addEventListener('click', (e) => {
+        if(e.target === modal) closeModal();
+        if(e.target === deleteModal) closeDeleteModal();
+    });
+</script>
+{% endblock %}

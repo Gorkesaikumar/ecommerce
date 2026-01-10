@@ -1,0 +1,36 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Environments
+env/
+venv/
+.env
+.venv/
+
+# Media
+media/
+!media/.gitkeep
+
+# Static (Collected)
+staticfiles/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary scripts
+debug_order_update.py
+seed_orders.py
+debug_error.log

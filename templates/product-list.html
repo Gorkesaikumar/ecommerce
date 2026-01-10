@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop Collection | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header">
+        <h2>Shop Collection</h2>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="filters-bar">
+        <a href="{% url 'product-list-frontend' %}" class="filter-pill {% if not request.GET.category %}active{% endif %}">All</a>
+        {% for cat in categories %}
+        {% if cat.slug %}
+        <a href="?category={{ cat.slug }}" class="filter-pill {% if request.GET.category == cat.slug %}active{% endif %}">
+            {{ cat.name }}
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="product-grid">
+        {% for product in products %}
+        <a href="{% url 'product-detail-slug-frontend' product.slug|default:product.id %}" class="product-card" style="position: relative;">
+            <div class="product-image">
+                {% if product.image_urls %}
+                <img src="{{ product.image_urls.0 }}" alt="{{ product.name }}" style="{{ product.stock_quantity|yesno:',opacity: 0.6;' }}">
+                {% else %}
+                <img src="/static/img/product1.jpg" alt="Product" style="{{ product.stock_quantity|yesno:',opacity: 0.6;' }}">
+                {% endif %}
+                
+                {% if product.stock_quantity == 0 %}
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                    Out of Stock
+                </div>
+                {% elif product.stock_quantity <= 100 %}
+                <div style="position: absolute; top: 10px; left: 10px; background: #ef6c00; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 2;">
+                    Only {{ product.stock_quantity }} Left
+                </div>
+                {% endif %}
+            </div>
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price-row">
+                <div class="price">₹{{ product.base_price }}</div>
+                {% if product.stock_quantity > 0 %}
+                <button class="btn-add-mini" title="Add to Cart" data-product-id="{{ product.id }}">+</button>
+                {% else %}
+                <button class="btn-add-mini" style="background: #ccc; cursor: not-allowed;" disabled title="Out of Stock">x</button>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-secondary);">
+            <p>No products found in this category.</p>
+            <a href="{% url 'product-list-frontend' %}" class="btn btn-secondary" style="margin-top: 20px; display: inline-block;">Clear Filters</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="pagination" style="text-align: center; margin-top: 60px;">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&category={{ request.GET.category }}" class="btn btn-secondary">Previous</a>
+            {% endif %}
+
+            <span class="current" style="margin: 0 16px;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&category={{ request.GET.category }}" class="btn btn-secondary">Next</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

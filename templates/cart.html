@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Cart | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header">
+        <h2>Your Cart</h2>
+    </div>
+
+    {% if cart and cart.items %}
+    <div class="cart-container responsive-split">
+        <!-- Cart Items -->
+        <div class="cart-items table-container">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart.items %}
+                    <tr>
+                        <td style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 60px; height: 60px; background: #f8f8f8; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                                {% if item.product_details.image_urls %}
+                                <img src="{{ item.product_details.image_urls.0 }}" alt="" style="width: 100%; height: 100%; object-fit: contain;">
+                                {% else %}
+                                <img src="/static/img/product1.jpg" alt="" style="width: 100%; height: 100%; object-fit: contain;">
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">{{ item.product_details.name }}</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Size: Standard</div>
+                            </div>
+                        </td>
+                        <td>₹{{ item.price_details.final_price }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px; width: fit-content;">
+                                <button onclick="updateQuantity('{{ item.id }}', {{ item.quantity|add:'-1' }})" class="qty-btn" style="padding: 4px 12px; border: none; background: none; cursor: pointer;">-</button>
+                                <input type="text" value="{{ item.quantity }}" readonly style="width: 30px; text-align: center; border: none; outline: none; font-weight: 500;">
+                                <button onclick="updateQuantity('{{ item.id }}', {{ item.quantity|add:'1' }})" class="qty-btn" style="padding: 4px 12px; border: none; background: none; cursor: pointer;">+</button>
+                            </div>
+                        </td>
+                        <td style="font-weight: 600;">₹{% widthratio item.price_details.final_price 1 item.quantity %}</td>
+                        <td>
+                             <button onclick="removeItem('{{ item.id }}')" style="background: none; border: none; color: #999; cursor: pointer;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                             </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary" style="background: #F9F9F9; padding: 32px; border-radius: 4px; height: fit-content;">
+            <h3 style="font-family: var(--font-heading); margin-bottom: 24px;">Order Summary</h3>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                <span>Subtotal</span>
+                <span>₹{{ cart.subtotal }}</span>
+            </div>
+            
+            {% if cart.discount_amount > 0 %}
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: #2e7d32;">
+                <span>Discount ({{ cart.applied_promo_code }})</span>
+                <span>-₹{{ cart.discount_amount }}</span>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
+            </div>
+            
+            <!-- Coupon Input -->
+            <div style="margin-bottom: 24px;">
+                {% if cart.applied_promo_code %}
+                    <div style="display: flex; gap: 8px; align-items: center; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; border: 1px solid #c8e6c9;">
+                        <span style="flex: 1; color: #2e7d32; font-size: 14px; font-weight: 500;">
+                            <i class="fa-solid fa-tag" style="margin-right: 6px;"></i> {{ cart.applied_promo_code }} applied
+                        </span>
+                        <button onclick="removeCoupon()" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 12px; font-weight: 600;">REMOVE</button>
+                    </div>
+                {% else %}
+                    <div class="input-group" style="display: flex; gap: 8px;">
+                        <input type="text" id="couponCode" placeholder="Promo Code" style="flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; outline: none; text-transform: uppercase;">
+                        <button onclick="applyCoupon()" id="applyBtn" style="padding: 10px 16px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="border-top: 1px solid #eee; padding-top: 16px; margin-bottom: 32px; display: flex; justify-content: space-between; font-weight: 600; font-size: 18px;">
+                <span>Total</span>
+                <span>₹{{ cart.total_price }}</span>
+            </div>
+            <a href="/checkout" class="btn btn-checkout-action" style="display: block; text-align: center;">Proceed to Checkout</a>
+            <a href="/products/" style="display: block; text-align: center; margin-top: 16px; font-size: 14px; text-decoration: underline;">Continue Shopping</a>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 100px 0;">
+        <h3 style="margin-bottom: 16px;">Your cart is empty</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">Looks like you haven't added anything yet.</p>
+        <a href="/products/" class="btn btn-primary">Start Shopping</a>
+    </div>
+    {% endif %}
+</section>
+
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Remove Item?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">Are you sure you want to remove this item from your cart?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button id="confirmDeleteBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Remove</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confetti Canvas -->
+<canvas id="confetti" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; display: none;"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    let itemToDelete = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Confetti Effect
+    function fireConfetti() {
+        const canvas = document.getElementById('confetti');
+        canvas.style.display = 'block';
+        
+        var duration = 3 * 1000;
+        var end = Date.now() + duration;
+
+        (function frame() {
+            confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                zIndex: 9999
+            });
+            confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                zIndex: 9999
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            } else {
+                canvas.style.display = 'none';
+            }
+        }());
+    }
+
+    async function applyCoupon() {
+        const code = document.getElementById('couponCode').value.trim();
+        if(!code) return;
+        
+        const btn = document.getElementById('applyBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Applying...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/v1/cart/apply-coupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ code: code, action: 'apply' })
+            });
+            
+            if(response.ok) {
+                fireConfetti();
+                // Reload to update prices
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                const data = await response.json();
+                if(window.showAdminToast) window.showAdminToast(data.error || 'Invalid Coupon', 'error');
+                else if(window.showToast) window.showToast(data.error || 'Invalid Coupon', true);
+                else alert(data.error || 'Invalid Coupon');
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        } catch(e) {
+            console.error(e);
+             if(window.showAdminToast) window.showAdminToast('Network Error', 'error');
+             else if(window.showToast) window.showToast('Network Error', true);
+             else alert('Network Error');
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+    
+    async function removeCoupon() {
+        if(!confirm('Remove coupon?')) return;
+        try {
+            const response = await fetch('/api/v1/cart/apply-coupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ action: 'remove' })
+            });
+            if(response.ok) location.reload();
+        } catch(e) { console.error(e); }
+    }
+
+    async function updateQuantity(itemId, newQty) {
+        if (newQty < 1) {
+            removeItem(itemId);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/cart/items/${itemId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ quantity: newQty })
+            });
+
+            if (response.ok) {
+                location.reload(); 
+            } else {
+                const data = await response.json();
+                if(window.showToast) window.showToast(data.error || 'Failed to update', true);
+                else alert(data.error || 'Failed to update');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function removeItem(itemId) {
+        itemToDelete = itemId;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        itemToDelete = null;
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        if (!itemToDelete) return;
+        
+        const btn = document.getElementById('confirmDeleteBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Removing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/v1/cart/items/${itemToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                location.reload();
+            } else {
+                alert('Failed to remove item');
+                closeDeleteModal();
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Network error');
+            closeDeleteModal();
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Close on outside click
+    document.getElementById('deleteModal').addEventListener('click', (e) => {
+        if(e.target === document.getElementById('deleteModal')) closeDeleteModal();
+    });
+</script>
+{% endblock %}
