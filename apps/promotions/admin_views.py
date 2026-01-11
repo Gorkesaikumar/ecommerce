@@ -77,3 +77,15 @@ class AdminPromoCodeViewSet(BaseMarketingViewSet):
         # Hard delete
         instance.delete()
         self._log_action('DELETE', 'PromoCode', instance.id)
+
+class AdminPopupViewSet(BaseMarketingViewSet):
+    from .models import Popup
+    from .serializers import PopupSerializer
+    serializer_class = PopupSerializer
+    queryset = Popup.objects.all() # Inherits soft delete logic if I implement it, wait. Popup doesn't seem to have soft delete in my definition?
+    # Checked models.py: Popup inherits MarketingContent. MarketingContent HAS is_deleted.
+    # BaseMarketingViewSet perform_destroy does soft delete.
+    # So I should filter queryset by is_deleted=False?
+    # BaseMarketingViewSet uses get_queryset().model.__name__ which is fine.
+    
+    queryset = Popup.objects.filter(is_deleted=False).order_by('-priority')

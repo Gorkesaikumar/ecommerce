@@ -32,9 +32,32 @@ class ValidatePromoView(APIView):
         if not result['valid']:
             return Response({'valid': False, 'message': result['message']}, status=status.HTTP_400_BAD_REQUEST)
             
-        return Response({
-            'valid': True,
-            'code': result['promo'].code,
-            'discount_amount': result['discount_amount'],
-            'message': result['message']
-        })
+
+from rest_framework import permissions, filters, generics
+from django.utils import timezone
+from .models import Popup
+from .serializers import PopupSerializer
+
+
+class PublicPopupListView(generics.ListAPIView):
+    """
+    Public Read-Only Popups
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PopupSerializer
+    
+    def get_queryset(self):
+        now = timezone.now()
+        queryset = Popup.objects.filter(
+            is_active=True,
+            start_date__lte=now
+        ).order_by('-priority', '-created_at')
+        
+        # Manually filter end_date since it can be null
+        # (Django exclude(end_date__lt=now) would exclude nulls if not careful, 
+        # normally exclude doesn't exclude nulls unless condition matches, but let's be safe)
+        # Actually Q objects are better: Q(end_date__gte=now) | Q(end_date__isnull=True)
+        from django.db.models import Q
+        queryset = queryset.filter(Q(end_date__gte=now) | Q(end_date__isnull=True))
+        
+        return queryset

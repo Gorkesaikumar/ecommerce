@@ -24,7 +24,7 @@ class CategorySerializer(serializers.ModelSerializer):
         return [{'id': c.id, 'name': c.name} for c in obj.subcategories.all()]
     
     def get_product_count(self, obj):
-        return obj.products.count()
+        return obj.products.filter(is_archived=False).count()
 
 class DimensionConfigSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,7 +47,7 @@ class DimensionConfigSerializer(serializers.ModelSerializer):
 
 class AdminCategoryViewSet(viewsets.ModelViewSet):
     """Category management"""
-    from apps.products.admin_views import IsAdminUser
+    from apps.core.admin_views import IsAdminUser
     permission_classes = [IsAdminUser]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -84,25 +84,53 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
         )
     
     def perform_destroy(self, instance):
-        if instance.products.exists():
+        # Check 1: Active products exist
+        if instance.products.filter(is_archived=False).exists():
             from rest_framework.exceptions import ValidationError
-            raise ValidationError("Cannot delete category with products")
+            raise ValidationError("Cannot delete category with active products")
         
+        # Check 2: Any products have been ordered (even if archived)
+        # Products with orders have PROTECTED constraint and cannot be deleted
+        from apps.orders.models import OrderItem
+        products_with_orders = instance.products.filter(
+            order_items__isnull=False
+        ).distinct()
+        
+        if products_with_orders.exists():
+            from rest_framework.exceptions import ValidationError
+            product_names = list(products_with_orders.values_list('name', flat=True)[:3])
+            if len(product_names) == 1:
+                msg = f"Cannot delete category: product '{product_names[0]}' has been ordered"
+            else:
+                msg = f"Cannot delete category: {len(products_with_orders)} products have been ordered"
+            raise ValidationError(msg)
+        
+        # Store info before deletion
+        category_id = str(instance.id)
         category_name = instance.name
-        AuditLog.objects.create(
-            user=self.request.user,
-            user_mobile=self.request.user.mobile_number,
-            user_role=self.request.user.role,
-            action='CATEGORY_DELETED',
-            resource_type='Category',
-            resource_id=str(instance.id),
-            changes={'name': category_name},
-            reason='Admin category deletion',
-            ip_address=self._get_client_ip(self.request),
-            correlation_id=getattr(self.request, 'correlation_id', None)
-        )
         
+        # Delete the category (this will CASCADE delete all products)
         instance.delete()
+        
+        # Create audit log after successful deletion
+        try:
+            AuditLog.objects.create(
+                user=self.request.user,
+                user_mobile=getattr(self.request.user, 'mobile_number', ''),
+                user_role=self.request.user.role,
+                action='CATEGORY_DELETED',
+                resource_type='Category',
+                resource_id=category_id,
+                changes={'name': category_name},
+                reason='Admin category deletion',
+                ip_address=self._get_client_ip(self.request),
+                correlation_id=getattr(self.request, 'correlation_id', None)
+            )
+        except Exception as e:
+            # Log audit failure but don't fail the deletion
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to create audit log for category deletion: {e}")
     
     def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -112,7 +140,7 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
 
 class AdminDimensionViewSet(viewsets.ModelViewSet):
     """Dimension configuration management"""
-    from apps.products.admin_views import IsAdminUser
+    from apps.core.admin_views import IsAdminUser
     permission_classes = [IsAdminUser]
     queryset = DimensionConfig.objects.all().select_related('product')
     serializer_class = DimensionConfigSerializer

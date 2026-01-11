@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.views.generic import RedirectView, TemplateView
 from apps.core.health import HealthCheckView
 from apps.core.views import HomeView
+from apps.products.frontend_views import CollectionView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -43,6 +44,7 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('support/', TemplateView.as_view(template_name='support.html'), name='support'),
     path('products/', include('apps.products.frontend_urls')),
+    path('collection/<slug:slug>', CollectionView.as_view(), name='collection-detail'),
     path('', include('apps.orders.frontend_urls')),
     path('', include('apps.authentication.frontend_urls')),
     path('', include('apps.core.admin_frontend_urls')),

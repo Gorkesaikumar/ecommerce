@@ -6,7 +6,8 @@ from .admin_frontend_views import (
     AdminUserListView, AdminInventoryView, AdminReportsView,
     AdminCategoryListView, AdminScrollBannerListView, AdminMainBannerListView, AdminPromotionListView,
     AdminCustomizeRequestsListView,
-    AdminPromoCodeListView
+    AdminPromoCodeListView,
+    AdminPopupListView
 )
 
 urlpatterns = [
@@ -33,5 +34,6 @@ urlpatterns = [
     path('admin/marketing/main-banners/', AdminMainBannerListView.as_view(), name='admin-main-banners'),
     path('admin/marketing/promotions/', AdminPromotionListView.as_view(), name='admin-promotions'),
     path('admin/marketing/promocodes/', AdminPromoCodeListView.as_view(), name='admin-promocodes'),
+    path('admin/marketing/popups/', AdminPopupListView.as_view(), name='admin-popups-view'),
     path('admin/customize-requests/', AdminCustomizeRequestsListView.as_view(), name='admin-customize-requests'),
 ]

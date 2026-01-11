@@ -1,4 +1,4 @@
-<aside class="admin-sidebar" style="background: #ffffff; padding: 24px; border-right: 1px solid #f0f0f0; height: calc(100vh - 80px); position: sticky; top: 80px; width: 260px; display: flex; flex-direction: column; overflow-y: auto;">
+<aside class="admin-sidebar" style="background: #ffffff; padding: 24px; border-right: 1px solid #f0f0f0; height: 100vh; position: sticky; top: 0; width: 260px; display: flex; flex-direction: column; overflow-y: auto;">
     <div style="margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid #f5f5f5;">
         <h3 style="font-family: var(--font-heading); margin-bottom: 4px; color: #2C2420; letter-spacing: 0.5px;">Admin Portal</h3>
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #999;">Aethereal Management</div>
@@ -61,6 +61,11 @@
             <a href="{% url 'admin-promocodes' %}" class="admin-nav-item {% if 'promocodes' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
                 <i class="fa-solid fa-ticket" style="width: 20px; text-align: center;"></i>
                 <span>Coupons & Offers</span>
+            </a>
+
+            <a href="{% url 'admin-popups-view' %}" class="admin-nav-item {% if 'popups' in request.path %}active{% endif %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: #666; border-radius: 6px; transition: all 0.2s; font-size: 14px;">
+                <i class="fa-solid fa-window-maximize" style="width: 20px; text-align: center;"></i>
+                <span>Popups</span>
             </a>
 
             <div style="margin-top: 24px; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; color: #888; font-weight: 600; letter-spacing: 0.5px; padding-left: 12px;">Analytics</div>

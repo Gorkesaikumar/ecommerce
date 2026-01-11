@@ -124,3 +124,31 @@ class Promotion(MarketingContent):
     
     def __str__(self):
         return self.title or "Promotion"
+
+class Popup(MarketingContent):
+    """
+    Admin-managed popups for the storefront
+    """
+    TYPE_CHOICES = [
+        ('IMAGE', 'Image Only'),
+        ('TEXT', 'Text Only'),
+        ('IMAGE_LINK', 'Image + Link'),
+        ('TEXT_CTA', 'Text + CTA'),
+    ]
+    DISPLAY_CHOICES = [
+        ('ONCE_SESSION', 'Once per Session'),
+        ('ONCE_USER', 'Once per User'),
+        ('ALWAYS', 'Always'),
+    ]
+
+    popup_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='IMAGE')
+    content = models.TextField(blank=True, help_text="Text content (HTML allowed for safe tags)")
+    image = models.ImageField(upload_to='popups/', null=True, blank=True)
+    redirect_url = models.CharField(max_length=500, blank=True, null=True, help_text="Link to redirect to")
+    cta_text = models.CharField(max_length=50, blank=True, default="Learn More")
+    
+    display_rule = models.CharField(max_length=20, choices=DISPLAY_CHOICES, default='ONCE_SESSION')
+    delay_seconds = models.IntegerField(default=0, help_text="Delay before showing (seconds)")
+
+    def __str__(self):
+        return self.title or f"Popup ({self.get_popup_type_display()})"

@@ -1,0 +1,385 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Popups | Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Marketing Popups</h2>
+        <p style="color: #666; font-size: 14px;">Manage site-wide popups.</p>
+    </div>
+    <button onclick="openModal()" class="btn btn-primary">
+        <i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Add Popup
+    </button>
+</div>
+
+<!-- Popup List -->
+<div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Title/Content</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Type</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Display Rule</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Priority</th>
+                <th style="padding: 16px 24px; text-align: left; font-size: 12px; text-transform: uppercase;">Status</th>
+                <th style="padding: 16px 24px; text-align: right; font-size: 12px; text-transform: uppercase;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for popup in popups %}
+            <tr style="border-bottom: 1px solid #f9f9f9;">
+                <td style="padding: 16px 24px; font-weight: 500;">
+                    <div style="font-weight: 600;">{{ popup.title|default:"Untitled" }}</div>
+                    <div style="font-size: 12px; color: #666; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ popup.content|striptags }}</div>
+                </td>
+                <td style="padding: 16px 24px;">
+                    <span style="background: #f0f7ff; color: #0066cc; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">{{ popup.get_popup_type_display }}</span>
+                </td>
+                <td style="padding: 16px 24px; font-size: 13px;">{{ popup.get_display_rule_display }}</td>
+                <td style="padding: 16px 24px;">{{ popup.priority }}</td>
+                <td style="padding: 16px 24px;">
+                    {% if popup.is_active %}
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Active</span>
+                    {% else %}
+                    <span style="background: #f5f5f5; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 16px 24px; text-align: right;">
+                    <button onclick="openEditModal('{{ popup.id }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
+                    <button onclick="openDeleteModal('{{ popup.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="padding: 32px; text-align: center; color: #666;">No popups found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="popupModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;">
+        <h3 id="modalTitle" style="margin-bottom: 24px; font-family: var(--font-heading);">Add Popup</h3>
+        
+        <!-- Warning for Edit -->
+        <div id="editWarning" style="display: none; background: #fff3e0; border: 1px solid #ffe0b2; color: #e65100; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px;">
+            <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+            Editing this popup will update what is shown on the main website. Are you sure you want to continue?
+        </div>
+
+        <form id="popupForm" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="popupId">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">Title (Internal)</label>
+                    <input type="text" id="popupTitle" class="form-input" placeholder="e.g. Summer Sale Popup">
+                </div>
+                <div>
+                     <label class="form-label">Type</label>
+                    <select id="popupType" class="form-input" onchange="toggleFields()">
+                        <option value="IMAGE">Image Only</option>
+                        <option value="TEXT">Text Only</option>
+                        <option value="IMAGE_LINK">Image + Link</option>
+                        <option value="TEXT_CTA">Text + CTA</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="imageFieldGroup" style="margin-bottom: 20px;">
+                <label class="form-label">Image (Max 100KB)</label>
+                <input type="file" id="popupImage" class="form-input" accept="image/png, image/jpeg, image/webp" onchange="validateImage(this)">
+                <div id="currentImage" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
+            </div>
+
+            <div id="contentFieldGroup" style="margin-bottom: 20px; display: none;">
+                <label class="form-label">Content Text</label>
+                <textarea id="popupContent" class="form-input" rows="3" placeholder="Popup message..."></textarea>
+            </div>
+
+            <div id="linkFieldGroup" style="margin-bottom: 20px; display: none;">
+                 <label class="form-label">Redirect URL</label>
+                 <input type="text" id="popupLink" class="form-input" placeholder="/products/sale">
+            </div>
+
+            <div id="ctaFieldGroup" style="margin-bottom: 20px; display: none;">
+                <label class="form-label">CTA Button Text</label>
+                <input type="text" id="popupCta" class="form-input" placeholder="Shop Now">
+           </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">Display Rule</label>
+                    <select id="popupRule" class="form-input">
+                        <option value="ONCE_SESSION">Once per Session</option>
+                        <option value="ONCE_USER">Once per User</option>
+                        <option value="ALWAYS">Always</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Delay (Seconds)</label>
+                    <input type="number" id="popupDelay" class="form-input" value="0">
+                </div>
+            </div>
+
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div>
+                    <label class="form-label">Priority</label>
+                    <input type="number" id="popupPriority" class="form-input" value="0">
+                </div>
+                <div>
+                    <label class="form-label">Status</label>
+                    <select id="popupStatus" class="form-input">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Popup</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div style="width: 64px; height: 64px; background: #fee; border-radius: 50%; color: #d32f2f; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i class="fa-solid fa-trash" style="font-size: 24px;"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; font-family: var(--font-heading);">Delete Popup?</h3>
+        <p style="color: #666; margin-bottom: 24px;">This action will permanently delete the popup and remove it from the main website. This action cannot be undone.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button id="confirmDeleteBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Confirm Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deleteId = null;
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Pass data safely from Django template
+    // We need to parse custom logic here since `safe_data` filter doesn't exist
+    // Instead we fetch data or pass ID and use backend, OR just populate simply
+    
+    function validateImage(input) {
+        if (input.files && input.files[0]) {
+            if (input.files[0].size > 100 * 1024) {
+                 window.showAdminToast('Image must be under 100KB', 'error');
+                 input.value = ''; // Clear input
+            }
+        }
+    }
+
+    function toggleFields() {
+        const type = document.getElementById('popupType').value;
+        const imageGroup = document.getElementById('imageFieldGroup');
+        const contentGroup = document.getElementById('contentFieldGroup');
+        const linkGroup = document.getElementById('linkFieldGroup');
+        const ctaGroup = document.getElementById('ctaFieldGroup');
+
+        if (type === 'IMAGE') {
+            imageGroup.style.display = 'block';
+            contentGroup.style.display = 'none';
+            linkGroup.style.display = 'none';
+            ctaGroup.style.display = 'none';
+        } else if (type === 'TEXT') {
+            imageGroup.style.display = 'none';
+            contentGroup.style.display = 'block';
+            linkGroup.style.display = 'none';
+            ctaGroup.style.display = 'none';
+        } else if (type === 'IMAGE_LINK') {
+            imageGroup.style.display = 'block';
+            contentGroup.style.display = 'none';
+            linkGroup.style.display = 'block';
+            ctaGroup.style.display = 'none';
+        } else if (type === 'TEXT_CTA') {
+            imageGroup.style.display = 'none';
+            contentGroup.style.display = 'block';
+            linkGroup.style.display = 'block';
+            ctaGroup.style.display = 'block';
+        }
+    }
+
+    // Helper to populate form
+    function openEditModal(id, data) {
+         // data should be object
+         // Since passing JSON in onclick is messy, let's fetch individual fields or use data attributes
+         // But wait, the list view has the data. 
+         // I'll assume we iterate and use data attributes on the button or simple solution
+         // For simplicity, let's just use data attributes on the TR or similar?
+         // Actually, let's just make the button define the data inline if possible, or fetch via API if needed.
+         // Fetching via API is cleaner for edit.
+         openModal(id);
+         
+         // Fetch specific data
+         fetch(`/api/v1/promotions/admin/popups/${id}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('popupTitle').value = data.title || '';
+                document.getElementById('popupType').value = data.popup_type;
+                document.getElementById('popupContent').value = data.content || '';
+                document.getElementById('popupLink').value = data.redirect_url || '';
+                document.getElementById('popupCta').value = data.cta_text || '';
+                document.getElementById('popupRule').value = data.display_rule;
+                document.getElementById('popupDelay').value = data.delay_seconds;
+                document.getElementById('popupPriority').value = data.priority;
+                document.getElementById('popupStatus').value = data.is_active; // "true" or "false" string? API returns bool.
+                toggleFields();
+                
+                if (data.image) {
+                     document.getElementById('currentImage').innerText = 'Current: ' + data.image.split('/').pop();
+                } else {
+                     document.getElementById('currentImage').innerText = '';
+                }
+            });
+    }
+
+    function openModal(id=null) {
+        const modal = document.getElementById('popupModal');
+        const title = document.getElementById('modalTitle');
+        const form = document.getElementById('popupForm');
+        const warning = document.getElementById('editWarning');
+        
+        if (id) {
+            title.innerText = 'Edit Popup';
+            document.getElementById('popupId').value = id;
+            warning.style.display = 'block'; // Show warning
+        } else {
+            title.innerText = 'Add Popup';
+            form.reset();
+             document.getElementById('popupId').value = '';
+             document.getElementById('popupType').value = 'IMAGE';
+             document.getElementById('popupStatus').value = 'true';
+             document.getElementById('popupPriority').value = '0';
+             document.getElementById('popupDelay').value = '0';
+             document.getElementById('currentImage').innerText = '';
+             warning.style.display = 'none';
+             toggleFields();
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('popupModal').style.display = 'none';
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('popupId').value;
+        const url = id ? `/api/v1/promotions/admin/popups/${id}/` : '/api/v1/promotions/admin/popups/';
+        const method = id ? 'PATCH' : 'POST';
+        
+        const formData = new FormData();
+        formData.append('title', document.getElementById('popupTitle').value);
+        formData.append('popup_type', document.getElementById('popupType').value);
+        formData.append('display_rule', document.getElementById('popupRule').value);
+        formData.append('priority', document.getElementById('popupPriority').value);
+        formData.append('is_active', document.getElementById('popupStatus').value === 'true');
+        formData.append('delay_seconds', document.getElementById('popupDelay').value);
+        
+        const type = document.getElementById('popupType').value;
+        if (['TEXT', 'TEXT_CTA'].includes(type)) {
+             formData.append('content', document.getElementById('popupContent').value);
+        }
+        if (['IMAGE_LINK', 'TEXT_CTA'].includes(type)) {
+             formData.append('redirect_url', document.getElementById('popupLink').value);
+        }
+        if (type === 'TEXT_CTA') {
+             formData.append('cta_text', document.getElementById('popupCta').value);
+        }
+        
+        const imageInput = document.getElementById('popupImage');
+        if (['IMAGE', 'IMAGE_LINK'].includes(type) && imageInput.files[0]) {
+             formData.append('image', imageInput.files[0]);
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                    // Content-Type not needed for FormData, browser sets it
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                closeModal();
+                window.showAdminToast(id ? 'Popup updated' : 'Popup created', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                 const res = await response.json();
+                 let errorMsg = 'Error saving popup';
+                 if (res.image) errorMsg = res.image[0]; // Specific image error
+                 window.showAdminToast(errorMsg, 'error');
+                 console.error(res);
+            }
+        } catch (error) {
+            console.error(error);
+            window.showAdminToast('Network error', 'error');
+        }
+    }
+
+    function openDeleteModal(id) {
+        deleteId = id;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        deleteId = null;
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+        if (!deleteId) return;
+        
+        try {
+            const response = await fetch(`/api/v1/promotions/admin/popups/${deleteId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok || response.status === 204) {
+                closeDeleteModal();
+                window.showAdminToast('Popup deleted', 'delete');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                window.showAdminToast('Failed to delete', 'error');
+            }
+        } catch (error) {
+            window.showAdminToast('Error deleting', 'error');
+        }
+    };
+    
+    // Close on outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('popupModal')) closeModal();
+        if (event.target == document.getElementById('deleteModal')) closeDeleteModal();
+    }
+</script>
+{% endblock %}

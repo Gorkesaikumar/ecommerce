@@ -36,9 +36,15 @@
                         <button onclick="openEditModal('{{ cat.id }}', '{{ cat.name }}', '{{ cat.slug }}')" style="background: none; border: none; cursor: pointer; color: #1976d2; margin-right: 8px;" title="Edit">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
+                        {% if cat.product_count == 0 %}
                         <button onclick="openDeleteModal('{{ cat.id }}')" style="background: none; border: none; cursor: pointer; color: #d32f2f;" title="Delete">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
+                        {% else %}
+                        <button disabled style="background: none; border: none; cursor: not-allowed; color: #ccc;" title="Cannot delete: has products">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -259,6 +265,7 @@
         btn.disabled = true;
 
         try {
+            console.log('Attempting to delete category ID:', id);
             const response = await fetch(`/api/v1/admin/categories/${id}/`, {
                 method: 'DELETE',
                 headers: {
@@ -266,17 +273,43 @@
                 }
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
             if (response.ok || response.status === 204) {
                  closeDeleteModal();
                  window.showAdminToast('Category deleted successfully', 'delete');
                  setTimeout(() => location.reload(), 1000);
             } else {
-                window.showAdminToast('Failed to delete category', 'error');
+                const responseText = await response.text();
+                console.log('Error response text:', responseText);
+                
+                let errorMsg = 'Failed to delete category';
+                try {
+                    const res = JSON.parse(responseText);
+                    console.log('Parsed error response:', res);
+                    // Handle both array format (ValidationError) and object format
+                    if (Array.isArray(res)) {
+                        errorMsg = res[0] || errorMsg;
+                    } else if (res.detail) {
+                        errorMsg = res.detail;
+                    } else if (res.error) {
+                        errorMsg = res.error;
+                    } else if (typeof res === 'string') {
+                        errorMsg = res;
+                    }
+                } catch(e) {
+                    console.error('Failed to parse error response:', e);
+                    errorMsg = responseText || errorMsg;
+                }
+                
+                console.log('Final error message:', errorMsg);
+                window.showAdminToast(errorMsg, 'error');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         } catch (err) {
-            console.error(err);
+            console.error('Network error:', err);
             window.showAdminToast('Network error', 'error');
             btn.innerHTML = originalText;
             btn.disabled = false;

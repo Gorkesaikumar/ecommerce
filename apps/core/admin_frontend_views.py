@@ -121,7 +121,7 @@ class AdminInventoryView(AdminRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from apps.products.models import Product, Category
-        context['products'] = Product.objects.all().order_by('stock_quantity')
+        context['products'] = Product.objects.filter(is_archived=False).order_by('stock_quantity')
         context['categories'] = Category.objects.all()
         return context
 
@@ -131,8 +131,10 @@ class AdminCategoryListView(AdminRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from apps.products.models import Category
-        from django.db.models import Count
-        context['categories'] = Category.objects.annotate(product_count=Count('products')).all().order_by('name')
+        from django.db.models import Count, Q
+        context['categories'] = Category.objects.annotate(
+            product_count=Count('products', filter=Q(products__is_archived=False))
+        ).all().order_by('name')
         return context
 
 class AdminReportsView(AdminRequiredMixin, TemplateView):
@@ -172,6 +174,15 @@ class AdminPromoCodeListView(AdminRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         from apps.promotions.models import PromoCode
         context['promocodes'] = PromoCode.objects.all().order_by('-created_at')
+        return context
+
+class AdminPopupListView(AdminRequiredMixin, TemplateView):
+    template_name = 'admin/marketing/popups.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from apps.promotions.models import Popup
+        context['popups'] = Popup.objects.filter(is_deleted=False).order_by('-priority')
         return context
 
 class AdminCustomizeRequestsListView(AdminRequiredMixin, TemplateView):

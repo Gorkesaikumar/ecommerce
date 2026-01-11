@@ -46,3 +46,33 @@ class ProductDetailFrontendView(DetailView):
             return get_object_or_404(queryset, slug=slug)
         
         raise AttributeError("Detailed view must be called with either an object pk or a slug in the URLconf.")
+
+class CollectionView(ProductListFrontendView):
+    template_name = 'product-list.html'
+    
+    def get_queryset(self):
+        qs = Product.objects.filter(is_archived=False)
+        slug = self.kwargs.get('slug')
+        
+        # Alias 'home' to 'home-decor' if needed, or strict filtering
+        if slug == 'home':
+            slug = 'home-decor'
+            
+        if slug:
+            qs = qs.filter(category__slug=slug)
+            
+        return qs.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        slug = self.kwargs.get('slug')
+        if slug == 'home': slug = 'home-decor'
+        
+        context['current_category_slug'] = slug
+        if slug:
+            try:
+                category = Category.objects.get(slug=slug)
+                context['page_title'] = category.name
+            except Category.DoesNotExist:
+                context['page_title'] = slug.title()
+        return context
