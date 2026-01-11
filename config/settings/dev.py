@@ -40,3 +40,11 @@ LOGGING = {
         },
     },
 }
+
+# Override Redis Cache for local development
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}

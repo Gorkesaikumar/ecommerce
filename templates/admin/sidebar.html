@@ -103,3 +103,32 @@
         }
     </style>
 </aside>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sidebar = document.querySelector('.admin-sidebar');
+        const storageKey = 'adminSidebarScroll';
+
+        // 1. Restore scroll position immediately
+        const savedPosition = sessionStorage.getItem(storageKey);
+        if (savedPosition && sidebar) {
+            sidebar.scrollTop = savedPosition;
+        }
+
+        // 2. Save scroll position before leaving or on scroll
+        if (sidebar) {
+            // Save on scroll (throttled slightly if needed, but direct is fine for this)
+            sidebar.addEventListener('scroll', function() {
+                sessionStorage.setItem(storageKey, sidebar.scrollTop);
+            });
+            
+            // Also save on click of any nav item to be sure
+            const links = sidebar.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('click', () => {
+                   sessionStorage.setItem(storageKey, sidebar.scrollTop);
+                });
+            });
+        }
+    });
+</script>
