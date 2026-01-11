@@ -3,12 +3,30 @@
 {% block title %}Audit Logs | WoodCraft Admin{% endblock %}
 
 {% block admin_content %}
-    <div style="margin-bottom: 24px;">
-        <h2 style="font-family: var(--font-heading);">System Audit Logs</h2>
-        <p style="color: var(--text-secondary);">Track all sensitive system actions.</p>
+<style>
+    .admin-page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    @media (max-width: 768px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+    }
+</style>
+
+    <div class="admin-page-header">
+        <div>
+            <h2 style="font-family: var(--font-heading);">System Audit Logs</h2>
+            <p style="color: var(--text-secondary);">Track all sensitive system actions.</p>
+        </div>
     </div>
 
-    <div class="table-container">
+    <div class="table-container" style="overflow-x: auto;">
         <table class="premium-table">
             <thead>
                 <tr>

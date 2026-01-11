@@ -2,6 +2,86 @@
 
 {% block title %}Your Cart | WoodCraft{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Responsive Split Container */
+    .cart-container {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+    }
+    
+    .cart-items { flex: 2; }
+    .cart-summary { flex: 1; min-width: 300px; }
+
+    @media (max-width: 768px) {
+        .cart-summary {
+            min-width: 0;
+            width: 100%;
+        }
+    }
+
+    /* Responsive Logic */
+    @media (max-width: 1024px) {
+        .cart-container {
+            flex-direction: column;
+        }
+        .cart-summary {
+            width: 100%;
+        }
+    }
+
+    /* Mobile Table Card Transformation */
+    @media (max-width: 768px) {
+        .premium-table thead { display: none; }
+        .premium-table, .premium-table tbody, .premium-table tr, .premium-table td {
+            display: block;
+            width: 100%;
+        }
+        .premium-table tr {
+            margin-bottom: 16px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+        .premium-table td {
+            padding: 8px 0;
+            text-align: right; /* Align value to right */
+            border-bottom: 1px solid #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        /* Product Cell Special Handling */
+        .premium-table td:first-child {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 8px;
+            padding-bottom: 12px;
+            text-align: left;
+            justify-content: flex-start;
+        }
+        .premium-table td:last-child {
+            border-bottom: none;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: auto;
+            padding: 0;
+        }
+        /* Labels for non-product cells */
+        .premium-table td:nth-child(2)::before { content: "Price"; font-weight: 500; color: #666; }
+        .premium-table td:nth-child(3)::before { content: "Qty"; font-weight: 500; color: #666; }
+        .premium-table td:nth-child(4)::before { content: "Total"; font-weight: 500; color: #666; }
+    }
+
+    /* Standard Product Cell Styling */
+    .product-cell { display: flex; align-items: center; gap: 16px; }
+    .product-thumb { width: 60px; height: 60px; background: #f8f8f8; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     <div class="section-header">
@@ -24,8 +104,8 @@
                 <tbody>
                     {% for item in cart.items %}
                     <tr>
-                        <td style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 60px; height: 60px; background: #f8f8f8; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                        <td class="product-cell">
+                            <div class="product-thumb">
                                 {% if item.product_details.image_urls %}
                                 <img src="{{ item.product_details.image_urls.0 }}" alt="" style="width: 100%; height: 100%; object-fit: contain;">
                                 {% else %}

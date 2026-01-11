@@ -11,20 +11,76 @@
         -->
         {% include 'customer/sidebar.html' %}
 
+        {% include 'customer/sidebar.html' %}
+
+        <style>
+            .dashboard-layout {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                gap: 40px;
+                align-items: start;
+            }
+            @media (max-width: 1024px) {
+                .dashboard-layout {
+                    grid-template-columns: 1fr;
+                    gap: 24px;
+                }
+                aside { display: none; }
+            }
+
+            .detail-header {
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+            }
+            .item-row {
+                display: flex; 
+                gap: 24px; 
+                padding: 24px 0; 
+                border-bottom: 1px solid #F5F5F5;
+            }
+            .shipping-grid {
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 24px;
+            }
+            .detail-card {
+                border: 1px solid #EBEBEB; 
+                border-radius: 8px; 
+                overflow: hidden; 
+                margin-bottom: 24px; 
+                background: #FFF;
+            }
+            @media (max-width: 768px) {
+                .detail-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 12px;
+                }
+                .item-row {
+                    flex-direction: column;
+                    gap: 16px;
+                }
+                .shipping-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+        
         <main>
              <div style="margin-bottom: 24px;">
                 <a href="/account/orders" style="font-size: 14px; color: var(--text-secondary); display: inline-block; margin-bottom: 12px;">← Back to Orders</a>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="detail-header">
                     <h2 style="font-family: var(--font-heading); margin: 0;">Order #{{ order.id }}</h2>
                     <span class="badge {% if order.status == 'DELIVERED' %}badge-success{% elif order.status == 'CANCELLED' %}badge-danger{% else %}badge-neutral{% endif %}">{{ order.get_status_display }}</span>
                 </div>
             </div>
 
-            <div style="border: 1px solid #EBEBEB; border-radius: 8px; overflow: hidden; margin-bottom: 24px; background: #FFF;">
+            <div class="detail-card">
                 <div style="padding: 24px; background: #FAFAFA; border-bottom: 1px solid #EBEBEB; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Items Ordered</div>
                 <div style="padding: 0 24px;">
                     {% for item in order.items.all %}
-                    <div style="display: flex; gap: 24px; padding: 24px 0; border-bottom: 1px solid #F5F5F5;">
+                    <div class="item-row">
                         <div style="width: 80px; height: 80px; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid #eee;">
                              {% if item.product.image_urls %}
                              <img src="{{ item.product.image_urls.0 }}" style="width: 100%; height: 100%; object-fit: contain;">
@@ -57,7 +113,7 @@
             </div>
 
             <!-- Shipping Info Card -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="shipping-grid">
                  <div class="stat-card" style="padding: 24px;">
                     <h4 style="margin-bottom: 16px; font-size: 14px; text-transform: uppercase; color: var(--text-secondary);">Shipping Address</h4>
                     <div style="color: var(--text-primary); font-size: 14px; line-height: 1.6;">

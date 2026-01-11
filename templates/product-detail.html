@@ -2,6 +2,92 @@
 
 {% block title %}{{ product.name }} | WoodCraft{% endblock %}
 
+{% block extra_css %}
+<style>
+    .product-detail-container {
+        display: flex;
+        gap: 60px;
+        padding: 40px 0;
+        align-items: flex-start;
+    }
+    
+    .product-gallery {
+        flex: 1;
+        position: sticky;
+        top: 20px;
+    }
+    .product-gallery img {
+        width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    
+    .product-info {
+        flex: 1;
+        max-width: 500px; /* Optimal reading width */
+    }
+    
+    .product-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        color: #1a1a1a;
+        margin: 16px 0;
+        line-height: 1.1;
+    }
+    
+    .product-price-lg {
+        font-size: 28px;
+        color: #2C2420;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .product-detail-container {
+            gap: 40px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .product-detail-container {
+            flex-direction: column; /* Stack vertically */
+            gap: 24px;
+            padding: 24px 0;
+        }
+        
+        .product-gallery {
+            position: static; /* Remove sticky on mobile */
+            width: 100%;
+        }
+        
+        .product-info {
+            max-width: 100%; /* Full width */
+        }
+        
+        .product-title {
+            font-size: 32px;
+        }
+        
+        .actions button {
+            width: 100%; /* Full width button on mobile */
+        }
+
+        /* Modal Form Responsiveness */
+        .form-grid-3, .form-grid-2 {
+            display: grid;
+            gap: 12px;
+        }
+        .form-grid-3 { grid-template-columns: 1fr; }
+        .form-grid-2 { grid-template-columns: 1fr; }
+    }
+    
+    /* Desktop Grids default */
+    .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="product-detail-container">
     <!-- Left: Gallery -->

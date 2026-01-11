@@ -1,6 +1,151 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    /* Shared Grid (Duplicate of product-list for now, or could move to base css) */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+    }
+    
+    /* Collection Grid */
+    .collection-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    .collection-card {
+        position: relative;
+        height: 400px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .collection-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+    .collection-card:hover img { transform: scale(1.05); }
+    .collection-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .collection-card:hover .collection-overlay { opacity: 1; }
+    
+    .btn-overlay {
+        background: white;
+        color: #1a1a1a;
+        padding: 12px 24px;
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: 4px;
+    }
+
+    /* Trust Section */
+    .trust-section {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        padding: 60px 0;
+        border-top: 1px solid #f5f5f5;
+        margin-top: 60px;
+        text-align: center;
+    }
+    .trust-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .trust-icon {
+        width: 48px;
+        height: 48px;
+        background: #fdfbf7;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #C5A065;
+        margin-bottom: 8px;
+    }
+
+    /* Category Pills */
+    .category-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+    }
+    .cat-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 50px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.2s;
+    }
+    .cat-pill:hover {
+        border-color: #C5A065;
+        transform: translateY(-2px);
+    }
+    
+    /* --- RESPONSIVE BREAKPOINTS --- */
+    
+    /* Tablet */
+    @media (max-width: 1024px) {
+        .product-grid { grid-template-columns: repeat(3, 1fr); }
+        .collection-grid { grid-template-columns: repeat(3, 1fr); }
+        .trust-section { grid-template-columns: repeat(2, 1fr); }
+        .collection-card { height: 300px; }
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+        .product-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        
+        .collection-grid { 
+            grid-template-columns: 1fr; /* Stack collections */
+            gap: 16px;
+        }
+        .collection-card { height: 250px; }
+        
+        .trust-section { 
+            grid-template-columns: repeat(2, 1fr); /* 2x2 grid for trust icons */
+            padding: 40px 0;
+            gap: 32px;
+        }
+        
+        .cat-pill {
+            padding: 8px 16px; 
+            font-size: 14px;
+        }
+        
+        .promo-banner {
+            padding: 40px 20px !important;
+            text-align: center;
+        }
+        .promo-banner h2 { font-size: 1.8rem !important; }
+    }
+    
+    @media (max-width: 480px) {
+        .product-grid { grid-template-columns: 1fr; } /* 1 col for products on very small screens? Or keep 2? Let's do 1 for impact on homepage */
+        .trust-section { grid-template-columns: 1fr; } /* Stack trust completely */
+    }
+</style>
+
 <!-- Hero Removed -->
 
 <!-- Promotions Carousel (Premium Infinite Slider) -->
@@ -353,32 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %}
 
-<!-- Featured Collections (Static Fallback or could be dynamic) -->
-<section class="section">
-    <div class="section-header">
-        <h2>Featured Collections</h2>
-    </div>
-    <div class="collection-grid">
-        <div class="collection-card">
-            <img src="/static/img/collection1.jpg" alt="Woman in silk dress"> <!-- Placeholder path -->
-            <div class="collection-overlay">
-                <a href="/collection/elegance" class="btn-overlay">View Collection</a>
-            </div>
-        </div>
-        <div class="collection-card">
-            <img src="/static/img/collection2.jpg" alt="Minimalist dining">
-            <div class="collection-overlay">
-                <a href="/collection/home" class="btn-overlay">View Collection</a>
-            </div>
-        </div>
-        <div class="collection-card">
-            <img src="/static/img/collection3.jpg" alt="Travel accessories">
-            <div class="collection-overlay">
-                <a href="/collection/travel" class="btn-overlay">View Collection</a>
-            </div>
-        </div>
-    </div>
-</section>
+<!-- Featured Collections Removed (Hardcoded) -->
 
 <!-- Shop by Categories -->
 <section class="section">
@@ -449,46 +569,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </a>
         {% empty %}
-        <!-- Fallback if no products -->
-        <div class="product-card">
-            <div class="product-image">
-                <img src="/static/img/product1.jpg" alt="Table Lamp">
-            </div>
-            <div class="product-name">The Artisan Table Lamp</div>
-            <div class="product-price-row">
-                <div class="price">₹18,500</div>
-                <button class="btn-add-mini" title="Add to Cart">+</button>
-            </div>
-        </div>
-        <div class="product-card">
-            <div class="product-image">
-                <img src="/static/img/product2.jpg" alt="Cashmere Throw">
-            </div>
-            <div class="product-name">Silk Cashmere Throw</div>
-            <div class="product-price-row">
-                <div class="price">₹24,000</div>
-                <button class="btn-add-mini" title="Add to Cart">+</button>
-            </div>
-        </div>
-        <div class="product-card">
-            <div class="product-image">
-                <img src="/static/img/product3.jpg" alt="Leather Bag">
-            </div>
-            <div class="product-name">Premium Leather Weekender</div>
-            <div class="product-price-row">
-                <div class="price">₹45,000</div>
-                <button class="btn-add-mini" title="Add to Cart">+</button>
-            </div>
-        </div>
-        <div class="product-card">
-            <div class="product-image">
-                <img src="/static/img/product4.jpg" alt="Vase Set">
-            </div>
-            <div class="product-name">Sculptural Vase Set</div>
-            <div class="product-price-row">
-                <div class="price">₹9,200</div>
-                <button class="btn-add-mini" title="Add to Cart">+</button>
-            </div>
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">
+            <p>Check back soon for our best sellers.</p>
         </div>
         {% endfor %}
     </div>

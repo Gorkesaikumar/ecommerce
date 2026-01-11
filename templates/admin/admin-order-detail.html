@@ -3,15 +3,48 @@
 {% block title %}Order #{{ order.id|truncatechars:8 }} | WoodCraft Admin{% endblock %}
 
 {% block admin_content %}
+    <style>
+        .admin-header-row {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: start;
+        }
+        .admin-detail-grid {
+            display: grid; 
+            grid-template-columns: 2fr 1fr; 
+            gap: 24px;
+        }
+        .order-item-row {
+            display: flex; 
+            gap: 16px; 
+            padding: 20px; 
+            border-bottom: 1px solid #f9f9f9;
+        }
+        @media (max-width: 1024px) {
+            .admin-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .admin-header-row {
+                flex-direction: column;
+                gap: 24px;
+            }
+            .order-item-row {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+
     <div style="margin-bottom: 24px;">
         <a href="/admin/orders" style="margin-bottom: 16px; display: inline-block; color: var(--text-secondary);">← Back to Orders</a>
-        <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div class="admin-header-row">
             <div>
                 <h2 style="font-family: var(--font-heading); margin-bottom: 4px;">Order #{{ order.id }}</h2>
                 <div style="font-size: 14px; color: var(--text-secondary);">Placed on {{ order.created_at|date:"F d, Y at H:i" }}</div>
                 <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #eee;">
                     <h4 style="margin-bottom: 16px;">Update Info</h4>
-                    <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                         <select id="statusSelect" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
                             <option value="PENDING" {% if order.status == 'PENDING' %}selected{% endif %}>Pending</option>
                             <option value="SHIPPED" {% if order.status == 'SHIPPED' %}selected{% endif %}>Shipped</option>
@@ -23,19 +56,19 @@
                 </div>
             </div>
             
-            <div style="display: flex; gap: 16px;">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
                 <button onclick="updateStatus('SHIPPED')" class="btn btn-primary">Mark as Shipped</button>
                 <button onclick="updateStatus('CANCELLED')" class="btn btn-secondary" style="border-color: #d32f2f; color: #d32f2f;">Cancel Order</button>
             </div>
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <div class="admin-detail-grid">
         <!-- Left: Items -->
         <div style="background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
             <div style="padding: 20px; border-bottom: 1px solid #eee; font-weight: 500;">Order Items</div>
             {% for item in order.items.all %}
-            <div style="display: flex; gap: 16px; padding: 20px; border-bottom: 1px solid #f9f9f9;">
+            <div class="order-item-row">
                     <div style="width: 60px; height: 60px; background: #eee; border-radius: 4px;"></div>
                     <div style="flex-grow: 1;">
                         <div style="font-weight: 500;">{{ item.product_snapshot.name }}</div>

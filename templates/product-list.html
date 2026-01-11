@@ -2,6 +2,59 @@
 
 {% block title %}Shop Collection | WoodCraft{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Responsive Product Grid */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-top: 32px;
+    }
+    
+    .filters-bar {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 8px; /* For scrollbar space */
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    .filters-bar::-webkit-scrollbar { display: none; } /* Hide Chrome */
+
+    /* Tablet */
+    @media (max-width: 1024px) {
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+        .product-grid {
+            grid-template-columns: repeat(1, 1fr); /* 2 columns is also popular, but 1 allows bigger images */
+            gap: 16px;
+        }
+        
+        /* Optional: 2 col on mobile if desired, let's stick to 1 for "premium" feel or 2 for density.
+           Let's go 1 column for full width impact as per "premium" requested spec usually. 
+           Actually, widely used e-com pattern is 2 cols on mobile. Let's do 2 cols for standard, 1 for very small?
+           Let's stick to a robust 1-column layout for now to avoid squishing, or 2 cols with care.
+           Let's try 2 columns for better browsing efficiency on mobile.
+        */
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr); 
+        }
+    }
+    
+    @media (max-width: 480px) {
+         .product-grid {
+            grid-template-columns: repeat(1, 1fr); /* 1 Column on very small screens */
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     <div class="section-header">

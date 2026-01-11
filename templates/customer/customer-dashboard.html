@@ -4,8 +4,88 @@
 
 {% block content %}
 <section class="section">
+    {% block extra_css %}
+    <style>
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        /* Mobile Dashboard Layout */
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            /* Hide Sidebar by default on mobile, toggleable via JS if needed, 
+               OR simpler: Collapse into a top scrollable menu? 
+               Let's go with a collapsible "Account Menu" button for simplicity 
+               rather than a full off-canvas sidebar since we already have the main one.
+            */
+            aside {
+                display: none; /* Hidden by default */
+            }
+            
+            #mobileAccountMenuBtn {
+                display: block;
+                width: 100%;
+                padding: 12px;
+                background: #fdfbf7;
+                border: 1px solid #eee;
+                border-radius: 8px;
+                text-align: left;
+                font-weight: 600;
+                margin-bottom: 24px;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            aside.mobile-visible {
+                display: block;
+                margin-bottom: 24px;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            #mobileAccountMenuBtn { display: none; }
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    {% endblock %}
+
+    <!-- Mobile Account Menu Trigger -->
+    <button id="mobileAccountMenuBtn" onclick="toggleAccountMenu()">
+        <span><i class="fa-regular fa-user" style="margin-right: 8px;"></i> Account Menu</span>
+        <i class="fa-solid fa-chevron-down"></i>
+    </button>
+    
     <div class="dashboard-layout">
         {% include 'customer/sidebar.html' %}
+        
+        <script>
+            function toggleAccountMenu() {
+                const sidebar = document.querySelector('aside');
+                sidebar.classList.toggle('mobile-visible');
+                const icon = document.querySelector('#mobileAccountMenuBtn .fa-chevron-down');
+                /* Rotate icon logic if desired */
+            }
+        </script>
+
 
         <main>
             <div style="margin-bottom: 32px;">

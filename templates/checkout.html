@@ -2,6 +2,53 @@
 
 {% block title %}Checkout | WoodCraft{% endblock %}
 
+{% block extra_css %}
+<style>
+    .checkout-grid {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+    }
+    .checkout-form { flex: 2; }
+    .order-summary { flex: 1; min-width: 320px; position: sticky; top: 100px; }
+
+    @media (max-width: 1024px) {
+        .order-summary {
+            min-width: 0;
+            width: 100%;
+            position: static; /* Unstick on mobile to prevent layout issues */
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .checkout-grid {
+            flex-direction: column-reverse; /* Summary on top for mobile? Or bottom? Usually bottom or collapsible. Let's keep standard flush. */
+            flex-direction: column;
+        }
+        .order-summary {
+            width: 100%;
+            position: static;
+            order: -1; /* Show summary first on mobile so they see what they buy? Or last? 
+                          Standard is often summary collapsed at top. Let's keep it simply stacked at top (order -1) or bottom. 
+                          Let's default to Natural flow (Form first) but many users prefer seeing price. 
+                          Let's keep Form First (default order) for now to minimize friction. */
+            order: 0; /* Reset */
+            margin-bottom: 32px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .form-row-responsive {
+            grid-template-columns: 1fr !important; /* Stack City/Zip */
+        }
+        .section {
+            padding: 24px 16px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     <div class="section-header">
@@ -75,7 +122,21 @@
                     <input type="text" name="address" required placeholder="Flat, Building, Street" class="form-input">
                 </div>
 
-                <div class="form-row-responsive" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <style>
+                    .form-row-responsive {
+                        display: grid; 
+                        grid-template-columns: 1fr 1fr; 
+                        gap: 20px;
+                    }
+                    @media (max-width: 768px) {
+                        .form-row-responsive {
+                            grid-template-columns: 1fr;
+                            gap: 12px;
+                        }
+                    }
+                </style>
+
+                <div class="form-row-responsive">
                     <div>
                         <label class="form-label">City</label>
                         <input type="text" name="city" required placeholder="Hyderabad" class="form-input">

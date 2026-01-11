@@ -12,7 +12,34 @@
                 <h2 style="font-family: var(--font-heading);">Profile Details</h2>
             </div>
 
-            <div class="card" style="padding: 32px; border: 1px solid #eee; border-radius: 8px;">
+            <style>
+                .dashboard-layout {
+                    display: grid;
+                    grid-template-columns: 280px 1fr;
+                    gap: 40px;
+                    align-items: start;
+                }
+                @media (max-width: 1024px) {
+                    .dashboard-layout {
+                        grid-template-columns: 1fr;
+                        gap: 24px;
+                    }
+                    aside { display: none; }
+                }
+
+                .profile-card {
+                    padding: 32px;
+                    border: 1px solid #eee;
+                    border-radius: 8px;
+                }
+                @media (max-width: 768px) {
+                    .profile-card {
+                        padding: 20px;
+                    }
+                }
+            </style>
+
+            <div class="card profile-card">
                 <form id="profileForm" class="form-grid" style="max-width: 600px;">
                     <!-- Hidden field for ID if needed, but endpoint uses request.user -->
                     <div class="form-group">

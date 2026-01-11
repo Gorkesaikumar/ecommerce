@@ -10,7 +10,22 @@
             <p>Our dedicated support team is here to assist you with any questions or concerns.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 40px; text-align: left;">
+        <style>
+            .support-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+                margin-top: 40px;
+                text-align: left;
+            }
+            @media (max-width: 768px) {
+                .support-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+
+        <div class="support-grid">
             <div class="stat-card" style="padding: 32px;">
                 <div style="font-size: 24px; margin-bottom: 16px;">📧</div>
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Email Support</h3>

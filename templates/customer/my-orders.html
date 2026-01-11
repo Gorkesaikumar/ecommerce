@@ -8,6 +8,51 @@
         {% include 'customer/sidebar.html' %}
 
         <main>
+            <style>
+                .dashboard-layout {
+                    display: grid;
+                    grid-template-columns: 280px 1fr;
+                    gap: 40px;
+                    align-items: start;
+                }
+                @media (max-width: 1024px) {
+                    .dashboard-layout {
+                        grid-template-columns: 1fr;
+                        gap: 24px;
+                    }
+                    aside {
+                        display: none; 
+                    }
+                }
+
+                .order-header {
+                    padding: 16px 24px; 
+                    background: #fcfcfc; 
+                    border-bottom: 1px solid #eee; 
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center;
+                }
+                .order-footer {
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center; 
+                    padding-top: 16px; 
+                    border-top: 1px solid #f9f9f9;
+                }
+                @media (max-width: 768px) {
+                    .order-header, .order-footer {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 12px;
+                    }
+                    .order-footer a {
+                        width: 100%;
+                        text-align: center;
+                    }
+                }
+            </style>
+            
             <div style="margin-bottom: 24px;">
                 <h2 style="font-family: var(--font-heading);">My Orders</h2>
             </div>
@@ -16,7 +61,7 @@
                 <div style="display: flex; flex-direction: column; gap: 24px;">
                     {% for order in orders %}
                     <div style="border: 1px solid #eee; border-radius: 8px; background: white; overflow: hidden; transition: box-shadow 0.2s;">
-                        <div style="padding: 16px 24px; background: #fcfcfc; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="order-header">
                             <div>
                                 <span style="font-weight: 600; margin-right: 12px;">Order #{{ order.id }}</span>
                                 <span style="color: var(--text-secondary); font-size: 13px;">{{ order.created_at|date:"F d, Y" }}</span>
@@ -50,7 +95,7 @@
                                 {% endif %}
                             </div>
 
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f9f9f9;">
+                            <div class="order-footer">
                                 <div>
                                     <span style="color: var(--text-secondary); font-size: 13px;">Total Amount</span>
                                     <div style="font-weight: 600; font-size: 16px;">₹{{ order.total_amount }}</div>

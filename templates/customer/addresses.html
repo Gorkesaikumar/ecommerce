@@ -3,17 +3,67 @@
 {% block title %}Addresses | WoodCraft{% endblock %}
 
 {% block content %}
+<style>
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 40px;
+        align-items: start;
+    }
+    @media (max-width: 1024px) {
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        /* Mobile Sidebar Toggle Logic would go here if we had one, 
+           but for now ensures stacking prevents overflow */
+        aside {
+            display: none; /* Hide sidebar on mobile for now to prevent clutter */
+        }
+    }
+    
+    .page-header {
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .address-grid {
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+        gap: 24px;
+    }
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .page-header button {
+            width: 100%;
+        }
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 <section class="section">
     <div class="dashboard-layout">
         {% include 'customer/sidebar.html' %}
 
         <main>
-            <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="page-header">
                 <h2 style="font-family: var(--font-heading);">Saved Addresses</h2>
                 <button onclick="openModal()" class="btn btn-secondary">+ Add New</button>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
+            <div class="address-grid">
                 {% for address in addresses %}
                 <!-- Address Card -->
                 <div style="border: 1px solid {% if address.is_default %}#2C2420{% else %}#eee{% endif %}; border-radius: 8px; padding: 24px; position: relative; background: white;">
@@ -59,7 +109,7 @@
                 <input type="text" id="line1" required class="form-input" placeholder="House No, Street, Colony">
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-row">
                 <div class="form-group">
                     <label>City</label>
                     <input type="text" id="city" required class="form-input" placeholder="City">

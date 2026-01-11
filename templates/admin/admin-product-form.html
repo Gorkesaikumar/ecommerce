@@ -4,15 +4,90 @@
 
 {% block admin_content %}
 <div style="max-width: 1000px; margin: 0 auto; padding-bottom: 80px;">
+    {% block extra_css %}
+    <style>
+        .form-layout-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+        /* Critical Fix: Prevent Grid items from expanding beyond viewport */
+        .form-layout-grid > div {
+            min-width: 0;
+            width: 100%; /* Ensure they take full width but don't overflow */
+        }
+        
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .admin-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        .admin-card-header {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 24px;
+        }
+
+        .header-buttons {
+            display: flex; 
+            gap: 12px;
+            flex-wrap: wrap; /* Safety wrap */
+        }
+
+        @media (max-width: 1024px) {
+            .form-layout-grid {
+                grid-template-columns: 1fr; /* Stack vertically */
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .image-preview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .admin-header-flex {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .header-buttons {
+                width: 100%;
+            }
+            .header-buttons button {
+                flex: 1; /* Full width touch targets */
+                justify-content: center;
+            }
+            
+            .admin-card {
+                padding: 20px; /* Reduced padding */
+            }
+
+            .admin-card-header {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+    </style>
+    {% endblock %}
+
     <!-- Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+    <div class="admin-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
         <div>
             <a href="/admin/products" style="color: #666; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                 <i class="fa-solid fa-arrow-left"></i> Back to Products
             </a>
             <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #1a1a1a; margin: 0;">Add New Product</h2>
         </div>
-        <div style="display: flex; gap: 12px;">
+        <div class="header-buttons">
              <button onclick="window.location.href='/admin/products'" style="padding: 12px 24px; border: 1px solid #ddd; background: white; border-radius: 8px; font-weight: 500; cursor: pointer;">Cancel</button>
              <button onclick="submitProduct()" style="padding: 12px 32px; background: #2C2420; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-check"></i> Create Product
@@ -21,12 +96,12 @@
     </div>
 
     <!-- Main Grid -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+    <div class="form-layout-grid">
         
         <!-- Left Column -->
         <div style="display: flex; flex-direction: column; gap: 32px;">
             <!-- Basic Info Card -->
-            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div class="admin-card">
                 <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 24px; color: #2C2420;">Basic Information</h3>
                 
                 <div style="margin-bottom: 24px;">
@@ -48,28 +123,30 @@
             </div>
 
             <!-- Dimensions & Pricing Card -->
-            <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div class="admin-card">
+                <div class="admin-card-header">
                     <h3 style="font-size: 18px; font-weight: 600; color: #2C2420;">Dimensions & Pricing</h3>
                     <button type="button" onclick="addDimensionRow()" style="background: #F4F1EE; color: #2C2420; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer;">
                         + Add Variant
                     </button>
                 </div>
 
-                <table style="width: 100%; border-collapse: separate; border-spacing: 12px 8px;">
-                    <thead>
-                        <tr style="text-align: left; color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <th style="padding-bottom: 8px;">Length (cm)</th>
-                            <th style="padding-bottom: 8px;">Breadth (cm)</th>
-                            <th style="padding-bottom: 8px;">Height (cm)</th>
-                            <th style="padding-bottom: 8px;">Price (₹)</th>
-                            <th style="padding-bottom: 8px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dimensionsBody">
-                        <!-- Rows injected via JS -->
-                    </tbody>
-                </table>
+                <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid #f0f0f0; border-radius: 6px;">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 12px 8px; min-width: 500px;">
+                        <thead>
+                            <tr style="text-align: left; color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <th style="padding-bottom: 8px;">Length (cm)</th>
+                                <th style="padding-bottom: 8px;">Breadth (cm)</th>
+                                <th style="padding-bottom: 8px;">Height (cm)</th>
+                                <th style="padding-bottom: 8px;">Price (₹)</th>
+                                <th style="padding-bottom: 8px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dimensionsBody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
                 <p style="font-size: 12px; color: #999; margin-top: 12px;">* Ensure at least one dimension variant is added.</p>
             </div>
         </div>
@@ -77,7 +154,7 @@
         <!-- Right Column -->
         <div style="display: flex; flex-direction: column; gap: 32px;">
             <!-- Organization Card -->
-            <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div class="admin-card">
                 <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2C2420;">Organization</h3>
                 
                 <div style="margin-bottom: 20px;">
@@ -103,7 +180,7 @@
             </div>
 
             <!-- Images Card -->
-            <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div class="admin-card">
                 <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #2C2420;">Images</h3>
                 
                 <div id="dropZone" style="border: 2px dashed #ddd; border-radius: 8px; padding: 32px 16px; text-align: center; cursor: pointer; transition: all 0.2s;" 
@@ -114,7 +191,7 @@
                 </div>
                 <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
                 
-                <div id="imagePreviews" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
+                <div id="imagePreviews" class="image-preview-grid">
                     <!-- Thumbnails -->
                 </div>
                 
@@ -127,7 +204,7 @@
 
 <!-- Custom Confirmation Modal -->
 <div id="confirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 32px; border-radius: 12px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: scale(0.95); opacity: 0; transition: all 0.2s ease;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: scale(0.95); opacity: 0; transition: all 0.2s ease;">
         <div style="width: 60px; height: 60px; background: #FFF5F5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
             <i class="fa-solid fa-triangle-exclamation" style="color: #D32F2F; font-size: 24px;"></i>
         </div>
@@ -143,7 +220,7 @@
 
 <!-- Add Category Modal -->
 <div id="categoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 32px; border-radius: 12px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
         <h3 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #1a1a1a; margin-bottom: 24px;">Add New Category</h3>
         
         <div style="margin-bottom: 20px;">

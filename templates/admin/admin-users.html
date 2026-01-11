@@ -8,8 +8,37 @@
     <p style="color: #666; font-size: 14px;">View registered customer details.</p>
 </div>
 
+{% block extra_css %}
+<style>
+    .stats-layout {
+        display: grid;
+        grid-template-columns: 240px 240px 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    @media (max-width: 1024px) {
+        .stats-layout {
+            grid-template-columns: 1fr 1fr; /* 2 cols */
+        }
+        .stats-layout > *:nth-child(3) {
+            grid-column: span 2; /* Banner spans full width */
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .stats-layout {
+            grid-template-columns: 1fr; /* Stack all */
+        }
+        .stats-layout > *:nth-child(3) {
+            grid-column: span 1;
+        }
+    }
+</style>
+{% endblock %}
+
 <!-- Stats & Top Customers Section -->
-<div style="display: grid; grid-template-columns: 240px 240px 1fr; gap: 24px; margin-bottom: 32px;">
+<div class="stats-layout">
     <!-- Total Customers -->
     <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
         <p style="color: #666; font-size: 14px; margin-bottom: 8px;">Total Customers</p>
@@ -88,16 +117,18 @@
                         {% endif %}
                     </td>
                     <td style="padding: 16px 24px; color: #666;">{{ user.date_joined|date:"M d, Y" }}</td>
-                    <td style="padding: 16px 24px; text-align: right;">
-                        {% if user.mobile_number %}
-                        <button onclick="openWhatsApp('{{ user.mobile_number }}')" class="btn-sm" style="background: none; border: 1px solid #25D366; color: #25D366; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;" title="Chat on WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
-                        {% endif %}
-                        <button onclick="openEditModal('{{ user.id }}', '{{ user.name|escapejs }}', '{{ user.email|escapejs }}', '{{ user.mobile_number|escapejs }}', '{{ user.role }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
-                        {% if user.role != 'ADMIN' %}
-                        <button onclick="openDeleteModal('{{ user.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
-                        {% else %}
-                        <button disabled style="background: #f5f5f5; border: 1px solid #ddd; color: #aaa; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: not-allowed;">Delete</button>
-                        {% endif %}
+                    <td style="padding: 16px 24px;">
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            {% if user.mobile_number %}
+                            <button onclick="openWhatsApp('{{ user.mobile_number }}')" class="btn-sm" style="background: none; border: 1px solid #25D366; color: #25D366; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;" title="Chat on WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+                            {% endif %}
+                            <button onclick="openEditModal('{{ user.id }}', '{{ user.name|escapejs }}', '{{ user.email|escapejs }}', '{{ user.mobile_number|escapejs }}', '{{ user.role }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Edit</button>
+                            {% if user.role != 'ADMIN' %}
+                            <button onclick="openDeleteModal('{{ user.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                            {% else %}
+                            <button disabled style="background: #f5f5f5; border: 1px solid #ddd; color: #aaa; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: not-allowed;">Delete</button>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

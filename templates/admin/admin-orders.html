@@ -3,7 +3,25 @@
 {% block title %}Manage Orders | Admin{% endblock %}
 
 {% block admin_content %}
-<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+{% block extra_css %}
+<style>
+    .admin-page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    @media (max-width: 768px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+<div class="admin-page-header">
     <div>
         <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Orders</h2>
         <p style="color: #666; font-size: 14px;">View and manage customer orders.</p>

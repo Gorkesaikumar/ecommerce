@@ -3,9 +3,32 @@
 {% block title %}Inventory | Admin{% endblock %}
 
 {% block admin_content %}
-<div style="margin-bottom: 24px;">
-    <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Inventory Stock</h2>
-    <p style="color: #666; font-size: 14px;">Monitor product stock levels.</p>
+{% block extra_css %}
+<style>
+    .admin-page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+    }
+    @media (max-width: 768px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .admin-page-header button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+<div class="admin-page-header">
+    <div>
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Inventory Stock</h2>
+        <p style="color: #666; font-size: 14px;">Monitor product stock levels.</p>
+    </div>
 </div>
 
 <div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
@@ -74,12 +97,10 @@
 <!-- Add Stock Button in Header (injecting via JS for cleaner template or modify header block? Let's add it near the H2) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const headerDiv = document.querySelector('div[style="margin-bottom: 24px;"]');
+        // Updated to target class name instead of style attribute
+        const headerDiv = document.querySelector('.admin-page-header');
         if(headerDiv) {
-            headerDiv.style.display = 'flex';
-            headerDiv.style.justifyContent = 'space-between';
-            headerDiv.style.alignItems = 'end';
-            
+            // styles are now handled by CSS class            
             const btn = document.createElement('button');
             btn.className = 'btn btn-primary';
             btn.innerHTML = '<i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Add Stock';

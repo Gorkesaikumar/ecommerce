@@ -4,11 +4,22 @@
 
 {% block content %}
 <section class="section" style="min-height: 85vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(to bottom, #fdfbf7, #f5f0e6);">
+    <style>
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 32px 24px !important;
+            }
+            .section {
+                padding: 16px;
+            }
+        }
+    </style>
     <div style="width: 100%; max-width: 440px; text-align: center;">
+
         <h1 style="font-family: 'Playfair Display', serif; margin-bottom: 12px; font-size: 38px; color: #2C2420;">Welcome Back</h1>
         <p style="color: #666; margin-bottom: 48px; font-size: 15px; letter-spacing: 0.5px;">Enter your mobile number to access your account.</p>
         
-        <div style="background: white; padding: 60px 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); text-align: left; border: 1px solid rgba(0,0,0,0.02);">
+        <div class="auth-card" style="background: white; padding: 60px 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); text-align: left; border: 1px solid rgba(0,0,0,0.02);">
             <form id="mobileForm">
                 <div style="margin-bottom: 32px;">
                     <label style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #999;">Mobile Number</label>

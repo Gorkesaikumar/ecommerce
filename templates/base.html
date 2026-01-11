@@ -51,7 +51,7 @@
                 </button>
                 
                 <!-- Menu Dropdown -->
-                <div id="menuDropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; min-width: 260px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-radius: 12px; z-index: 1100; padding: 12px; border: 1px solid rgba(0,0,0,0.04); margin-top: 16px; transform-origin: top left; animation: menuFadeIn 0.2s ease-out;">
+                <div id="menuDropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; min-width: 260px; max-width: 90vw; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-radius: 12px; z-index: 1100; padding: 12px; border: 1px solid rgba(0,0,0,0.04); margin-top: 16px; transform-origin: top left; animation: menuFadeIn 0.2s ease-out;">
                     <nav style="display: flex; flex-direction: column;">
                         <a href="/" class="menu-item"><i class="fa-solid fa-house"></i> Home</a>
                         <a href="/products" class="menu-item"><i class="fa-solid fa-bag-shopping"></i> Shop Collection</a>
@@ -160,6 +160,163 @@
         <span id="toastMessage">Success</span>
     </div>
 
+    <!-- Mobile Sidebar -->
+    <div id="mobileSidebar" class="mobile-sidebar">
+        <div class="mobile-sidebar-header">
+            <h3>Menu</h3>
+            <button class="close-sidebar-btn" onclick="closeMobileSidebar()">&times;</button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="/" class="mobile-nav-item"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/products" class="mobile-nav-item"><i class="fa-solid fa-bag-shopping"></i> Shop Collection</a>
+            <a href="/categories" class="mobile-nav-item"><i class="fa-solid fa-layer-group"></i> Categories</a>
+            <div class="mobile-nav-divider"></div>
+            {% if user.is_authenticated %}
+                <a href="/account/dashboard" class="mobile-nav-item"><i class="fa-regular fa-user"></i> My Account</a>
+                <a href="/logout" class="mobile-nav-item text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% else %}
+                <a href="/login" class="mobile-nav-item"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+                <a href="/register" class="mobile-nav-item"><i class="fa-solid fa-user-plus"></i> Register</a>
+            {% endif %}
+            <div class="mobile-nav-divider"></div>
+            <a href="/support" class="mobile-nav-item"><i class="fa-solid fa-headset"></i> Support</a>
+        </nav>
+    </div>
+    <div id="mobileOverlay" class="mobile-overlay" onclick="closeMobileSidebar()"></div>
+
+    <style>
+        /* Mobile Sidebar Styles */
+        .mobile-sidebar {
+            display: none; /* Default hidden */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            z-index: 3000;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+            display: flex; /* Override display none for logic, control via transform */
+            flex-direction: column;
+        }
+        
+        .mobile-sidebar.active {
+            transform: translateX(0);
+        }
+
+        /* Essential Fix: Hide by default on desktop, Show logic handled by media query */
+        @media (min-width: 1024px) {
+            .mobile-sidebar { display: none !important; }
+            .mobile-overlay { display: none !important; }
+        }
+        
+        @media (max-width: 1023px) {
+            .mobile-sidebar { display: flex; }
+            /* Hide desktop menu trigger on mobile if we use a different one, 
+               OR repurpose the existing one. Let's repurpose. */
+        }
+
+        .mobile-sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .mobile-sidebar-header h3 {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .close-sidebar-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .mobile-nav {
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        
+        .mobile-nav-item:hover {
+            background: #f9f9f9;
+        }
+        
+        .mobile-nav-item i {
+            width: 24px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .mobile-nav-divider {
+            height: 1px;
+            background: #f0f0f0;
+            margin: 12px 0;
+        }
+        
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            z-index: 2999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .mobile-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Footer Stacking */
+        @media (max-width: 768px) {
+            .footer-columns {
+                flex-direction: column;
+                gap: 32px;
+            }
+            .footer-col {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        
+        /* Header Optimization */
+        @media (max-width: 768px) {
+            .header-search-form {
+                display: none; /* Hide inline search on mobile, maybe show icon only */
+            }
+            .brand-logo {
+                font-size: 20px; /* Smaller logo */
+            }
+            .header-left span {
+                display: none; /* Hide "Menu" text */
+            }
+        }
+    </style>
+
     <!-- Site Notification/Popup Container (Renamed to avoid adblockers) -->
     <div id="site-notification-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
         <div id="site-notification-box" style="background: white; width: 90%; max-width: 500px; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform: scale(0.9); transition: transform 0.3s ease;">
@@ -186,6 +343,53 @@
                 setTimeout(() => { toast.style.display = 'none'; }, 300);
             }, 3000);
         }
+
+        // Mobile Sidebar Logic
+        function openMobileSidebar() {
+            document.getElementById('mobileSidebar').classList.add('active');
+            document.getElementById('mobileOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('mobileSidebar').classList.remove('active');
+            document.getElementById('mobileOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Updated Menu Trigger Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.querySelector('.menu-trigger');
+            if (menuBtn) {
+                menuBtn.addEventListener('click', (e) => {
+                    if (window.innerWidth < 1024) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openMobileSidebar();
+                    } else {
+                        // Desktop: Toggle Dropdown (Traditional)
+                        const dropdown = document.getElementById('menuDropdown');
+                        const backdrop = document.getElementById('menuBackdrop');
+                        if (dropdown.style.display === 'none' || !dropdown.style.display) {
+                            dropdown.style.display = 'block';
+                            if(backdrop) backdrop.style.display = 'block';
+                        } else {
+                            dropdown.style.display = 'none';
+                            if(backdrop) backdrop.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            // Close Backdrop logic (for desktop dropdown)
+            const backdrop = document.getElementById('menuBackdrop');
+            if (backdrop) {
+                backdrop.addEventListener('click', () => {
+                   document.getElementById('menuDropdown').style.display = 'none';
+                   backdrop.style.display = 'none';
+                });
+            }
+        });
 
         // Popup Logic
         document.addEventListener("DOMContentLoaded", async function() {

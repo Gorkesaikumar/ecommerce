@@ -38,6 +38,12 @@ body {
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll globally */
+}
+
+img, video, svg {
+    max-width: 100%;
+    height: auto;
 }
 
 a {

@@ -3,7 +3,17 @@
 {% block title %}Customize Requests | Admin{% endblock %}
 
 {% block admin_content %}
-<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: end;">
+<style>
+    @media (max-width: 768px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+    }
+</style>
+
+<div class="admin-page-header" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: end;">
     <div>
         <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Customize Requests</h2>
         <p style="color: #666; font-size: 14px;">Review and manage user customization inquiries.</p>

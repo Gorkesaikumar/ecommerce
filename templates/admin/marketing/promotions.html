@@ -3,7 +3,36 @@
 {% block title %}Promotions | Admin{% endblock %}
 
 {% block admin_content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+{% block extra_css %}
+<style>
+    .admin-page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .form-grid-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    @media (max-width: 768px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .admin-page-header button {
+            width: 100%;
+        }
+        .form-grid-pair {
+            grid-template-columns: 1fr; /* Stack inputs */
+        }
+    }
+</style>
+{% endblock %}
+
+<div class="admin-page-header">
     <div>
         <h2 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 8px;">Promotions</h2>
         <p style="color: #666; font-size: 14px;">Manage carousel promotions.</p>
@@ -15,6 +44,7 @@
 
 <!-- Promotion List -->
 <div style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
     <table class="premium-table" style="width: 100%; border-collapse: collapse;">
         <thead>
             <tr style="background: #fafafa; border-bottom: 1px solid #eee;">
@@ -59,6 +89,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 
 <!-- Create/Edit Modal -->
@@ -78,7 +109,7 @@
                 </button>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+            <div class="form-grid-pair" style="margin-bottom: 24px;">
                 <div>
                     <label class="form-label">Priority (Base)</label>
                     <input type="number" id="promoPriority" class="form-input" value="0">
