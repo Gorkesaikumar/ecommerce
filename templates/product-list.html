@@ -52,6 +52,32 @@
             grid-template-columns: repeat(1, 1fr); /* 1 Column on very small screens */
         }
     }
+    
+    /* Image Optimization */
+    .product-image {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4/5; /* Standard portrait ratio */
+        background: #fcfcfc;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Prevents cropping */
+        transition: transform 0.4s ease;
+        padding: 8px; /* Breathing room */
+    }
+    
+    .product-card:hover .product-image img {
+        transform: scale(1.08);
+    }
 </style>
 {% endblock %}
 

@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Category, Product, DimensionConfig
+from .models import Category, Product, DimensionConfig, ProductImage
+
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1
+    fields = ('image', 'alt_text', 'is_feature', 'order')
+    ordering = ('order',)
 
 class DimensionConfigInline(admin.TabularInline):
     model = DimensionConfig
@@ -16,6 +22,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'admin_code', 'category', 'base_price', 'stock_quantity', 'is_archived')
     list_filter = ('category', 'is_archived', 'created_at')
     search_fields = ('name', 'admin_code', 'description')
-    inlines = [DimensionConfigInline]
+    inlines = [ProductImageInline, DimensionConfigInline]
     prepopulated_fields = {'slug': ('name',)}
 

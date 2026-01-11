@@ -2,6 +2,24 @@
 
 {% block title %}Order Confirmed | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-public-header">
+         <div class="sk-logo sk-shimmer sk-rect"></div>
+         <div class="sk-actions">
+            <div class="sk-icon sk-shimmer sk-circle"></div>
+        </div>
+    </div>
+    <div class="sk-centered-layout">
+        <div class="sk-icon-large sk-shimmer sk-circle"></div>
+        <div class="sk-title-large sk-shimmer sk-rect"></div>
+        <div class="sk-text-line sk-shimmer sk-rect"></div>
+        <div class="sk-text-line short sk-shimmer sk-rect"></div>
+        <div class="sk-btn sk-shimmer sk-rect" style="width: 200px; margin-top: 24px;"></div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <section class="section" style="text-align: center; padding: 100px 20px;">
     <div style="width: 80px; height: 80px; background: #4CAF50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px;">✓</div>

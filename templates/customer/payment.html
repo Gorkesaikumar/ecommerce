@@ -2,6 +2,24 @@
 
 {% block title %}Payment | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-public-header">
+         <div class="sk-logo sk-shimmer sk-rect"></div>
+         <div class="sk-actions">
+            <div class="sk-icon sk-shimmer sk-circle"></div>
+        </div>
+    </div>
+    <div class="sk-form-container sk-shimmer" style="margin-top: 60px; max-width: 600px;">
+        <div class="sk-title-large sk-shimmer sk-rect" style="width: 50%; margin: 0 auto 10px auto;"></div>
+        <div class="sk-text-line sk-shimmer sk-rect" style="width: 30%; margin: 0 auto 40px auto;"></div>
+        
+        <div class="sk-card sk-shimmer sk-rect" style="height: 200px; margin-bottom: 24px;"></div>
+        <div class="sk-btn sk-shimmer sk-rect" style="height: 56px;"></div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">

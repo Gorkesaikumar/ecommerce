@@ -2,6 +2,23 @@
 
 {% block title %}Verify OTP | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-public-header">
+         <div class="sk-logo sk-shimmer sk-rect"></div>
+         <div class="sk-actions">
+            <div class="sk-icon sk-shimmer sk-circle"></div>
+        </div>
+    </div>
+    <div class="sk-form-container sk-shimmer" style="margin-top: 100px;">
+        <div class="sk-form-title sk-shimmer sk-rect" style="margin-bottom: 10px;"></div>
+        <div class="sk-text-line sk-shimmer sk-rect" style="width: 80%; margin-bottom: 30px;"></div>
+        <div class="sk-input sk-shimmer sk-rect"></div>
+        <div class="sk-btn sk-shimmer sk-rect"></div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <section class="section" style="max-width: 400px; margin: 60px auto; text-align: center;">
     <h1 style="font-family: var(--font-heading); margin-bottom: 8px;">Verify Mobile</h1>

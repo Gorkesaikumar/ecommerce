@@ -1,6 +1,6 @@
 {% extends 'admin/base_admin.html' %}
 
-{% block title %}Add Product | Admin{% endblock %}
+{% block title %}{% if product %}Edit Product{% else %}Add Product{% endif %} | Admin{% endblock %}
 
 {% block admin_content %}
 <div style="max-width: 1000px; margin: 0 auto; padding-bottom: 80px;">
@@ -85,12 +85,12 @@
             <a href="/admin/products" style="color: #666; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                 <i class="fa-solid fa-arrow-left"></i> Back to Products
             </a>
-            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #1a1a1a; margin: 0;">Add New Product</h2>
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #1a1a1a; margin: 0;">{% if product %}Edit Product{% else %}Add New Product{% endif %}</h2>
         </div>
         <div class="header-buttons">
              <button onclick="window.location.href='/admin/products'" style="padding: 12px 24px; border: 1px solid #ddd; background: white; border-radius: 8px; font-weight: 500; cursor: pointer;">Cancel</button>
              <button onclick="submitProduct()" style="padding: 12px 32px; background: #2C2420; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-check"></i> Create Product
+                <i class="fa-solid fa-check"></i> {% if product %}Update{% else %}Create{% endif %} Product
              </button>
         </div>
     </div>
@@ -106,18 +106,18 @@
                 
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Product Name <span style="color: red;">*</span></label>
-                    <input type="text" id="productName" placeholder="e.g. Luxury Velvet Sofa" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px;">
+                    <input type="text" id="productName" value="{{ product.name|default:'' }}" placeholder="e.g. Luxury Velvet Sofa" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px;">
                 </div>
 
                 <div style="margin-bottom: 24px;">
                      <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Description <span style="color: red;">*</span></label>
-                     <textarea id="productDesc" rows="5" placeholder="Detailed product description..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; resize: vertical;"></textarea>
+                     <textarea id="productDesc" rows="5" placeholder="Detailed product description..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; resize: vertical;">{{ product.description|default:'' }}</textarea>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                     <div>
                         <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">SKU / Admin Code <span style="color: red;">*</span></label>
-                        <input type="text" id="productSku" placeholder="e.g. SOFA-VEL-001" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: monospace;">
+                        <input type="text" id="productSku" value="{{ product.admin_code|default:'' }}" placeholder="e.g. SOFA-VEL-001" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: monospace;">
                     </div>
                 </div>
             </div>
@@ -167,14 +167,14 @@
                     <select id="productCategory" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
                         <option value="">Select Category</option>
                         {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        <option value="{{ cat.id }}" {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div>
-                    <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555; font-size: 14px;">Initial Stock <span style="color: red;">*</span></label>
-                    <input type="number" id="productStock" value="0" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555; font-size: 14px;">Stock <span style="color: red;">*</span></label>
+                    <input type="number" id="productStock" value="{{ product.stock_quantity|default:0 }}" min="0" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                     <p style="font-size: 12px; color: #888; margin-top: 4px;">Inventory will be tracked automatically.</p>
                 </div>
             </div>
@@ -236,15 +236,49 @@
 </div>
 
 <script>
-    const API_URL = '/api/v1/admin/products/'; 
+    const IS_EDIT_MODE = {% if product %}true{% else %}false{% endif %};
+    const PRODUCT_ID = "{% if product %}{{ product.id }}{% endif %}";
+    
+    // API URL depends on mode
+    const API_URL = IS_EDIT_MODE ? `/api/v1/admin/products/${PRODUCT_ID}/` : '/api/v1/admin/products/'; 
+    
     let uploadedImages = [];
     let rowToDelete = null; 
 
     document.addEventListener('DOMContentLoaded', () => {
-        addDimensionRow(); 
         setupImageUpload();
+        
+        if (IS_EDIT_MODE) {
+            // Populate existing data
+            populateExistingData();
+        } else {
+            addDimensionRow(); 
+            addDimensionRow(); // 2 blank rows initially for new product
+        }
     });
 
+    function populateExistingData() {
+        // Load Images
+        {% if product.image_urls %}
+            {% for img in product.image_urls %}
+                uploadedImages.push("{{ img }}");
+            {% endfor %}
+            renderThumbnails();
+        {% endif %}
+        
+        // Load Dimensions
+        // We'll parse this safely from a script or use basic django template loop if Dimensions are available in context (Product.dimensions.all)
+        // Since we don't have direct JSON, we'll iterate
+        const tbody = document.getElementById('dimensionsBody');
+        tbody.innerHTML = '';
+        
+        {% for dim in product.dimensions.all %}
+            addDimensionRow({{ dim.length }}, {{ dim.breadth }}, {{ dim.height }}, {{ dim.price }});
+        {% endfor %}
+        
+        // Ensure at least one row exists
+        if(tbody.children.length === 0) addDimensionRow();
+    }
     // --- Category Logic ---
     function openCategoryModal() {
         document.getElementById('categoryModal').style.display = 'flex';
@@ -318,15 +352,15 @@
     }
 
     // --- Dimensions Logic ---
-    function addDimensionRow() {
+    function addDimensionRow(l='', b='', h='', p='') {
         const tbody = document.getElementById('dimensionsBody');
         const tr = document.createElement('tr');
         tr.className = 'dim-row';
         tr.innerHTML = `
-            <td><input type="number" step="0.1" class="dim-l input-clean" placeholder="L"></td>
-            <td><input type="number" step="0.1" class="dim-b input-clean" placeholder="B"></td>
-            <td><input type="number" step="0.1" class="dim-h input-clean" placeholder="H"></td>
-            <td><input type="number" step="1" class="dim-p input-clean" placeholder="₹"></td>
+            <td><input type="number" step="0.1" class="dim-l input-clean" placeholder="L" value="${l}"></td>
+            <td><input type="number" step="0.1" class="dim-b input-clean" placeholder="B" value="${b}"></td>
+            <td><input type="number" step="0.1" class="dim-h input-clean" placeholder="H" value="${h}"></td>
+            <td><input type="number" step="1" class="dim-p input-clean" placeholder="₹" value="${p}"></td>
             <td>
                 <button type="button" onclick="removeRow(this)" style="color: #d32f2f; background: none; border: none; cursor: pointer;">
                     <i class="fa-solid fa-trash"></i>
@@ -405,12 +439,12 @@
             const basePrice = Math.min(...dimensions.map(d => d.price));
 
             const response = await fetch(API_URL, {
-                method: 'POST',
+                method: IS_EDIT_MODE ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
                 body: JSON.stringify({ name, description: desc, admin_code: sku, category, stock_quantity: parseInt(stock), base_price: basePrice, image_urls: uploadedImages, dimensions })
             });
 
-            if(response.ok) { showToast('Product created successfully!', 'success'); setTimeout(() => window.location.href = '/admin/products', 1500); }
+            if(response.ok) { showToast(IS_EDIT_MODE ? 'Product updated!' : 'Product created!', 'success'); setTimeout(() => window.location.href = '/admin/products', 1500); }
             else { const err = await response.json(); const msg = err.admin_code ? `SKU Error: ${err.admin_code}` : (err.non_field_errors ? err.non_field_errors[0] : 'Failed to create product.'); showToast(msg, 'error'); }
 
         } catch(e) { console.error(e); showToast('System error occurred.', 'error'); }

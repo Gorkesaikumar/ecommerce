@@ -2,6 +2,34 @@
 
 {% block title %}Checkout | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <!-- Mock Header -->
+    <div class="sk-public-header">
+        <div class="sk-logo sk-shimmer sk-rect"></div>
+        <div class="sk-actions">
+            <div class="sk-icon sk-shimmer sk-circle"></div>
+        </div>
+    </div>
+
+    <!-- Checkout Split Layout -->
+    <div class="sk-container" style="margin-top: 40px; display: flex; gap: 32px;">
+        <!-- Left: Form -->
+        <div style="flex: 2;">
+            <div class="sk-admin-title sk-shimmer sk-rect" style="margin-bottom: 24px; width: 150px;"></div>
+            <div class="sk-card sk-shimmer sk-rect" style="height: 100px; margin-bottom: 16px;"></div>
+            <div class="sk-card sk-shimmer sk-rect" style="height: 300px; margin-bottom: 16px;"></div>
+             <div class="sk-btn sk-shimmer sk-rect" style="height: 50px;"></div>
+        </div>
+        
+        <!-- Right: Summary -->
+        <div style="flex: 1;">
+            <div class="sk-card sk-shimmer sk-rect" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .checkout-grid {

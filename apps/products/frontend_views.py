@@ -47,6 +47,15 @@ class ProductDetailFrontendView(DetailView):
         
         raise AttributeError("Detailed view must be called with either an object pk or a slug in the URLconf.")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.get_object()
+        context['related_products'] = Product.objects.filter(
+            category=product.category, 
+            is_archived=False
+        ).exclude(id=product.id).order_by('?')[:4]
+        return context
+
 class CollectionView(ProductListFrontendView):
     template_name = 'product-list.html'
     

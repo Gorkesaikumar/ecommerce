@@ -22,7 +22,7 @@ class Product(models.Model):
     admin_code = models.CharField(max_length=50, unique=True, help_text="Internal SKU or Code")
     base_price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Base price in INR")
     description = models.TextField(blank=True)
-    image_urls = models.JSONField(default=list, help_text="List of image URLs")
+    legacy_image_urls = models.JSONField(default=list, help_text="List of image URLs (Deprecated)", blank=True)
     
     # Inventory Management
     stock_quantity = models.PositiveIntegerField(default=0, help_text="Available stock")
@@ -33,6 +33,31 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.admin_code} - {self.name}"
+
+    @property
+    def image_urls(self):
+        """
+        Returns a list of image URLs.
+        Prioritizes new ProductImage model, falls back to legacy_image_urls.
+        """
+        images = self.images.all()
+        if images.exists():
+            return [img.image.url for img in images]
+        return self.legacy_image_urls
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='products/%Y/%m/')
+    alt_text = models.CharField(max_length=255, blank=True)
+    is_feature = models.BooleanField(default=False, help_text="Main image for listings")
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', '-is_feature', '-created_at']
+
+    def __str__(self):
+        return f"Image for {self.product.name}"
 
 class DimensionConfig(models.Model):
     """

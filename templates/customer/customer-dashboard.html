@@ -2,6 +2,29 @@
 
 {% block title %}Dashboard | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-admin-layout">
+        <div class="sk-sidebar">
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+        </div>
+        <div class="sk-admin-main">
+            <div class="sk-admin-header">
+                <div class="sk-admin-title sk-shimmer sk-rect"></div>
+            </div>
+            <div class="sk-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="sk-card sk-shimmer sk-rect" style="height: 150px;"></div>
+                <div class="sk-card sk-shimmer sk-rect" style="height: 150px;"></div>
+                <div class="sk-card sk-shimmer sk-rect" style="height: 150px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     {% block extra_css %}

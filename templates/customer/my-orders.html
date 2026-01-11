@@ -2,6 +2,26 @@
 
 {% block title %}My Orders | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-admin-layout">
+        <div class="sk-sidebar">
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+            <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+        </div>
+        <div class="sk-admin-main">
+            <div class="sk-admin-title sk-shimmer sk-rect" style="width: 200px; margin-bottom: 30px;"></div>
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="sk-card sk-shimmer sk-rect" style="height: 180px;"></div>
+                <div class="sk-card sk-shimmer sk-rect" style="height: 180px;"></div>
+                <div class="sk-card sk-shimmer sk-rect" style="height: 180px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     <div class="dashboard-layout">

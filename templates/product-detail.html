@@ -2,101 +2,233 @@
 
 {% block title %}{{ product.name }} | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-public-header">
+         <div class="sk-logo sk-shimmer sk-rect"></div>
+         <div class="sk-actions">
+            <div class="sk-icon sk-shimmer sk-circle"></div>
+        </div>
+    </div>
+    <div class="sk-container" style="display: flex; gap: 40px; margin-top: 40px; align-items: flex-start;">
+        <!-- Left: Image -->
+        <div class="sk-shimmer sk-rect" style="flex: 1; height: 500px; border-radius: 12px;"></div>
+        
+        <!-- Right: Info -->
+        <div style="flex: 1; max-width: 500px;">
+             <div class="sk-text-line sk-shimmer sk-rect" style="width: 30%; margin-bottom: 20px;"></div>
+             <div class="sk-title-large sk-shimmer sk-rect" style="width: 80%; height: 50px; margin-bottom: 20px;"></div>
+             <div class="sk-title-large sk-shimmer sk-rect" style="width: 40%; height: 40px; margin-bottom: 40px;"></div>
+             
+             <div class="sk-text-line sk-shimmer sk-rect" style="margin-bottom: 12px;"></div>
+             <div class="sk-text-line sk-shimmer sk-rect" style="margin-bottom: 12px;"></div>
+             <div class="sk-text-line sk-shimmer sk-rect" style="width: 80%; margin-bottom: 40px;"></div>
+             
+             <div class="sk-btn sk-shimmer sk-rect" style="height: 56px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_css %}
 <style>
+    /* Container Layout */
     .product-detail-container {
         display: flex;
-        gap: 60px;
-        padding: 40px 0;
+        gap: 40px;
+        padding: 60px 0;
+        align-items: flex-start;
+        max-width: 1400px; /* Wider container for premium feel */
+        margin: 0 auto;
+    }
+    
+    /* Left Column: Gallery (60%) */
+    .product-gallery {
+        flex: 1.4; /* Takes up ~58% of space */
+        min-width: 0; /* Prevents flex overflow */
+    }
+    
+    .gallery-container {
+        display: flex;
+        flex-direction: row; /* Main Image | Thumbnails */
+        gap: 20px;
         align-items: flex-start;
     }
     
-    .product-gallery {
+    .main-image-wrapper {
         flex: 1;
-        position: sticky;
-        top: 20px;
-    }
-    .product-gallery img {
         width: 100%;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        background: #fff; /* Clean white */
+        border-radius: 4px;
+        position: relative;
+        cursor: crosshair;
+        /* Remove fixed height constraint to allow natural scaling */
+        aspect-ratio: 4/5; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
+    .main-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Ensure full product visibility */
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        transform-origin: center center;
+    }
+    
+    /* Thumbnails - Vertical Strip (Right of Main Image) */
+    .thumbnails-strip {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100px; /* Slightly wider */
+        flex-shrink: 0;
+        /* NO SCROLLBARS - Allow natural height */
+    }
+    
+    .thumb {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 4px;
+        border: 1px solid #eee; /* Subtle border */
+        object-fit: contain;
+        background: #fff;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+    }
+    
+    .thumb:hover, .thumb.active {
+        border-color: #000;
+        opacity: 1;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Premium hover lift */
+    }
+
+    /* Right Column: Info (40%) */
     .product-info {
         flex: 1;
-        max-width: 500px; /* Optimal reading width */
+        padding-top: 10px; /* Optical alignment with image top */
     }
-    
+
+    /* Typography Improvements */
     .product-title {
         font-family: 'Playfair Display', serif;
-        font-size: 42px;
-        color: #1a1a1a;
-        margin: 16px 0;
+        font-size: 48px; /* Larger, more dominant */
+        font-weight: 400;
+        color: #111;
+        margin: 0 0 16px 0;
         line-height: 1.1;
+        letter-spacing: -0.5px;
     }
     
     .product-price-lg {
-        font-size: 28px;
-        color: #2C2420;
+        font-size: 26px;
+        color: #333;
         font-weight: 500;
-        margin-bottom: 24px;
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .product-description {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.7;
+        margin-bottom: 40px;
+        border-top: 1px solid #f0f0f0; /* Separator */
+        padding-top: 24px;
     }
 
     /* Responsive */
     @media (max-width: 1024px) {
         .product-detail-container {
-            gap: 40px;
+            flex-direction: column;
+            padding: 40px 20px;
+        }
+        
+        .gallery-container {
+            justify-content: center;
+        }
+
+        .main-image-wrapper {
+             max-height: 600px;
         }
     }
     
     @media (max-width: 768px) {
-        .product-detail-container {
-            flex-direction: column; /* Stack vertically */
-            gap: 24px;
-            padding: 24px 0;
+        .gallery-container {
+            flex-direction: column-reverse; /* Thumbnails below on mobile */
+            gap: 16px;
         }
         
-        .product-gallery {
-            position: static; /* Remove sticky on mobile */
+        .thumbnails-strip {
+            flex-direction: row;
             width: 100%;
+            height: auto;
+            overflow-x: auto;
+            justify-content: flex-start;
         }
         
-        .product-info {
-            max-width: 100%; /* Full width */
+        .thumb {
+            width: 70px;
+            height: 70px;
         }
-        
-        .product-title {
-            font-size: 32px;
-        }
-        
-        .actions button {
-            width: 100%; /* Full width button on mobile */
-        }
-
-        /* Modal Form Responsiveness */
-        .form-grid-3, .form-grid-2 {
-            display: grid;
-            gap: 12px;
-        }
-        .form-grid-3 { grid-template-columns: 1fr; }
-        .form-grid-2 { grid-template-columns: 1fr; }
     }
+
+    /* Related Products */
+    .related-products-section {
+        margin-top: 80px;
+        border-top: 1px solid #eee;
+        padding-top: 40px;
+    }
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+    }
+    @media(max-width: 1024px) {
+        .related-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media(max-width: 480px) {
+        .related-grid { grid-template-columns: repeat(1, 1fr); }
+    }
+
     
-    /* Desktop Grids default */
-    .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    /* Interactive Styles for Related Products */
+    .product-card:hover .product-image img { transform: scale(1.05); } 
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="product-detail-container">
     <!-- Left: Gallery -->
+    <!-- Left: Gallery -->
     <div class="product-gallery">
-        {% if product.image_urls %}
-        <img src="{{ product.image_urls.0 }}" alt="{{ product.name }}">
-        {% else %}
-        <img src="/static/img/product1.jpg" alt="{{ product.name }}">
-        {% endif %}
+        <div class="gallery-container">
+            <!-- Main Image Frame -->
+            <div class="main-image-wrapper" id="zoomContainer" onmousemove="zoomImage(event)" onmouseleave="resetZoom()">
+                {% if product.image_urls %}
+                <img src="{{ product.image_urls.0 }}" id="mainImage" alt="{{ product.name }}">
+                {% else %}
+                <img src="/static/img/product1.jpg" id="mainImage" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+            
+            <!-- Thumbnails -->
+            {% if product.image_urls|length > 1 %}
+            <div class="thumbnails-strip">
+                {% for img_url in product.image_urls %}
+                <img src="{{ img_url }}" 
+                     class="thumb {% if forloop.first %}active{% endif %}" 
+                     onclick="switchImage(this)"
+                     alt="Thumbnail {{ forloop.counter }}">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Right: Info -->
@@ -169,6 +301,32 @@
             {% endif %}
         </div>
     </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="related-products-section">
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; text-align: center; margin-bottom: 8px;">You May Also Like</h3>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">Curated selections from the same collection</p>
+        
+        <div class="related-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+            {% for rel_product in related_products %}
+            <a href="{% url 'product-detail-slug-frontend' rel_product.slug|default:rel_product.id %}" class="product-card" style="display: block; text-decoration: none; color: inherit;">
+                 <div class="product-image" style="width: 100%; aspect-ratio: 4/5; background: #fcfcfc; border-radius: 8px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                    {% if rel_product.image_urls %}
+                    <img src="{{ rel_product.image_urls.0 }}" alt="{{ rel_product.name }}" style="width: 100%; height: 100%; object-fit: contain; padding: 8px; transition: transform 0.3s;">
+                    {% else %}
+                    <img src="/static/img/product1.jpg" alt="" style="width: 100%; height: 100%; object-fit: contain;">
+                    {% endif %}
+                 </div>
+                 <h4 style="font-size: 16px; font-weight: 500; margin-bottom: 4px;">{{ rel_product.name }}</h4>
+                 <div style="font-size: 15px; color: var(--text-secondary);">₹{{ rel_product.base_price }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Customization Request Modal -->
@@ -332,6 +490,46 @@
     
     function closeSuccessModal() {
         document.getElementById('customSuccessModal').style.display = 'none';
+    }
+
+    // --- Gallery Logic ---
+    function switchImage(thumb) {
+        const mainImg = document.getElementById('mainImage');
+        // Update Src
+        mainImg.src = thumb.src;
+        
+        // Update Active Class
+        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        
+        // Reset Zoom
+        resetZoom();
+    }
+
+    // --- Zoom Logic ---
+    function zoomImage(e) {
+        const container = document.getElementById('zoomContainer');
+        const img = document.getElementById('mainImage');
+        
+        const rect = container.getBoundingClientRect();
+        
+        // Calculate mouse position relative to container
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Calculate percentage (0-100)
+        const xPercent = (x / rect.width) * 100;
+        const yPercent = (y / rect.height) * 100;
+        
+        // Apply transform
+        img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        img.style.transform = 'scale(2)'; // 2x Zoom level
+    }
+
+    function resetZoom() {
+        const img = document.getElementById('mainImage');
+        img.style.transform = 'scale(1)';
+        img.style.transformOrigin = 'center center';
     }
 </script>
 

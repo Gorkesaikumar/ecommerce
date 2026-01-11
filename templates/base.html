@@ -14,8 +14,57 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="/static/css/skeleton.css">
 </head>
 <body>
+    <!-- SKELETON LOADER (Public) -->
+    {% block skeleton_loader %}
+    <div id="initial-skeleton-overlay">
+        <!-- Mock Header -->
+        <div class="sk-public-header">
+            <div class="sk-logo sk-shimmer sk-rect"></div>
+            <div class="sk-nav-links">
+                <div class="sk-nav-item sk-shimmer sk-rect"></div>
+                <div class="sk-nav-item sk-shimmer sk-rect"></div>
+                <div class="sk-nav-item sk-shimmer sk-rect"></div>
+            </div>
+            <div class="sk-actions">
+                <div class="sk-icon sk-shimmer sk-circle"></div>
+                <div class="sk-icon sk-shimmer sk-circle"></div>
+                <div class="sk-icon sk-shimmer sk-circle"></div>
+            </div>
+        </div>
+        
+        <!-- Mock Hero -->
+        <div class="sk-public-hero sk-shimmer"></div>
+        
+        <!-- Mock Grid -->
+        <div class="sk-container">
+            <div class="sk-grid">
+                <div class="sk-card">
+                    <div class="sk-card-img sk-shimmer sk-rect"></div>
+                    <div class="sk-card-title sk-shimmer sk-rect"></div>
+                    <div class="sk-card-price sk-shimmer sk-rect"></div>
+                </div>
+                <div class="sk-card">
+                    <div class="sk-card-img sk-shimmer sk-rect"></div>
+                    <div class="sk-card-title sk-shimmer sk-rect"></div>
+                    <div class="sk-card-price sk-shimmer sk-rect"></div>
+                </div>
+                <div class="sk-card">
+                    <div class="sk-card-img sk-shimmer sk-rect"></div>
+                    <div class="sk-card-title sk-shimmer sk-rect"></div>
+                    <div class="sk-card-price sk-shimmer sk-rect"></div>
+                </div>
+                <div class="sk-card">
+                    <div class="sk-card-img sk-shimmer sk-rect"></div>
+                    <div class="sk-card-title sk-shimmer sk-rect"></div>
+                    <div class="sk-card-price sk-shimmer sk-rect"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
     
     <!-- Sticky Wrapper -->
     <div class="sticky-wrapper">
@@ -477,6 +526,7 @@
             }, 300);
         }
     </script>
+    <script src="/static/js/loader.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

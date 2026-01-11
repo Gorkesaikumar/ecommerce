@@ -2,6 +2,37 @@
 
 {% block title %}Your Cart | WoodCraft{% endblock %}
 
+{% block skeleton_loader %}
+<div id="initial-skeleton-overlay">
+    <div class="sk-public-header">
+         <div class="sk-logo sk-shimmer sk-rect"></div>
+         <div class="sk-actions">
+            <div class="sk-icon sk-shimmer sk-circle"></div>
+        </div>
+    </div>
+    
+    <div class="sk-container" style="margin-top: 40px;">
+        <div class="sk-title-large sk-shimmer sk-rect" style="width: 200px; margin-bottom: 24px;"></div>
+        
+        <!-- Cart Layout -->
+        <div style="display: flex; gap: 32px;">
+            <!-- Left: Items -->
+            <div style="flex: 2;">
+                <!-- Mock Items -->
+                 <div class="sk-card sk-shimmer sk-rect" style="height: 80px; margin-bottom: 16px;"></div>
+                 <div class="sk-card sk-shimmer sk-rect" style="height: 80px; margin-bottom: 16px;"></div>
+                 <div class="sk-card sk-shimmer sk-rect" style="height: 80px; margin-bottom: 16px;"></div>
+            </div>
+            
+            <!-- Right: Summary -->
+            <div style="flex: 1;">
+                 <div class="sk-card sk-shimmer sk-rect" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     /* Responsive Split Container */

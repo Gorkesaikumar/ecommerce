@@ -14,8 +14,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="/static/css/skeleton.css">
 </head>
 <body style="background: #fafafa;">
+
+    <!-- SKELETON LOADER (Admin) -->
+    <div id="initial-skeleton-overlay">
+        <div class="sk-admin-layout">
+            <!-- Mock Sidebar -->
+            <div class="sk-sidebar">
+                <div class="sk-logo sk-shimmer sk-rect" style="margin-bottom: 20px;"></div>
+                <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+                <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+                <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+                <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+                <div class="sk-sidebar-item sk-shimmer sk-rect"></div>
+            </div>
+            
+            <!-- Mock Content -->
+            <div class="sk-admin-main">
+                <div class="sk-admin-header">
+                    <div class="sk-admin-title sk-shimmer sk-rect"></div>
+                    <div class="sk-actions">
+                        <div class="sk-icon sk-shimmer sk-circle"></div>
+                        <div class="sk-icon sk-shimmer sk-circle"></div>
+                    </div>
+                </div>
+                <div class="sk-table sk-shimmer sk-rect"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Hamburger Menu Button (Mobile/Tablet only) -->
     <button id="hamburger-btn" class="hamburger-menu" aria-label="Toggle menu">
@@ -263,6 +291,7 @@
             });
         });
     </script>
+    <script src="/static/js/loader.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
