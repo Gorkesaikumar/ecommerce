@@ -37,14 +37,22 @@ class VerifyOTPView(APIView):
         if serializer.is_valid():
             tokens = serializer.get_tokens()
             
-            # Hybrid App: Log user in for Session Auth (Templates)
-            from django.contrib.auth import login, get_user_model
-            User = get_user_model()
-            mobile = serializer.validated_data['mobile_number']
-            user = User.objects.get(mobile_number=mobile)
-            login(request, user)
+            # Hybrid App: Set JWT Cookie for Template Views (Middleware handled)
+            # We NO LONGER use django.contrib.auth.login() to avoid destroying Admin sessions.
+            # Isolation Strategy: Customer = JWT Cookie, Admin = Session Cookie.
             
-            return Response(tokens, status=status.HTTP_200_OK)
+            response = Response(tokens, status=status.HTTP_200_OK)
+            
+            # Set Secure HTTPOnly Cookie
+            response.set_cookie(
+                'access_token', 
+                tokens['access'], 
+                httponly=True, 
+                samesite='Lax',
+                max_age=30 * 24 * 60 * 60 # 30 Days (matches access token lifetime config)
+            )
+            
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):

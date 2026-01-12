@@ -81,13 +81,45 @@ class CustomizeRequestCreateView(generics.CreateAPIView):
             # Save the request linked to user
             serializer.save(user=self.request.user)
             
-            # Smart Save: Update profile name if missing
+            # Smart Save: Sync Profile Data (Name, Email, Mobile) if missing
+            # This ensures we capture customer details progressively without separate API calls.
             user = self.request.user
-            submitted_name = serializer.validated_data.get('name')
+            update_fields = []
             
+            # 1. Name Sync
+            submitted_name = serializer.validated_data.get('name')
             if not user.name and submitted_name:
                 user.name = submitted_name
-                user.save(update_fields=['name'])
+                update_fields.append('name')
+            
+            # 2. Email Sync (Safe Check)
+            submitted_email = serializer.validated_data.get('email')
+            if not user.email and submitted_email:
+                # INTEGRITY CHECK: Ensure this email isn't already used by another user
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                if not User.objects.filter(email=submitted_email).exists():
+                    user.email = submitted_email
+                    update_fields.append('email')
+            
+            # 3. Mobile/Phone Sync (Safe Check)
+            # 'phone' in serializer maps to 'mobile_number' in User model
+            submitted_phone = serializer.validated_data.get('phone')
+            if submitted_phone and submitted_phone != user.mobile_number:
+                 # Only update if user somehow has a blank/temp mobile (rare, but good for consistency)
+                 # Or if we decide to allow updates. Ideally, mobile is the identity, so we handle with care.
+                 # Current logic: If user has placeholder or we want to capture secondary?
+                 # Requirement says "If profile is missing...". Mobile is rarely missing as it is the login.
+                 # We will add logic just in case mobile was blank (e.g. email login future-proofing).
+                 if not user.mobile_number:
+                     from django.contrib.auth import get_user_model
+                     User = get_user_model()
+                     if not User.objects.filter(mobile_number=submitted_phone).exists():
+                        user.mobile_number = submitted_phone
+                        update_fields.append('mobile_number')
+
+            if update_fields:
+                user.save(update_fields=update_fields)
 
 class CustomerCustomizeRequestViewSet(generics.ListAPIView, generics.RetrieveAPIView):
     """

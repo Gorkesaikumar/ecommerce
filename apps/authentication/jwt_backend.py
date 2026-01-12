@@ -25,6 +25,28 @@ class BlacklistCheckingJWTAuthentication(JWTAuthentication):
     3. Rejects if blacklisted
     """
     
+    def authenticate(self, request):
+        """
+        Extend auth to support Cookies as fallback for Headers.
+        This enables 'Backend-only' fixes for frontend clients that only support cookies.
+        """
+        header = self.get_header(request)
+        if header is None:
+            # Fallback to Cookie (Customer Isolation Strategy)
+            # CRITICAL: Do NOT use cookie for Admin paths (Admin uses Session)
+            if request.path.startswith('/admin') or request.path.startswith('/api/v1/admin'):
+                return None
+            
+            raw_token = request.COOKIES.get('access_token')
+        else:
+            raw_token = self.get_raw_token(header)
+        
+        if raw_token is None:
+            return None
+
+        validated_token = self.get_validated_token(raw_token)
+        return self.get_user(validated_token), validated_token
+
     def get_validated_token(self, raw_token):
         """
         Override to add blacklist check after standard validation.

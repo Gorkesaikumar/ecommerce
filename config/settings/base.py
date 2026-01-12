@@ -82,6 +82,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.authentication.middleware.JWTCookieMiddleware', # Customer JWT Support for Templates
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.core.middleware.audit.AuditLogMiddleware',

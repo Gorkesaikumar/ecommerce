@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category, DimensionConfig, ProductDimension
+from .models import Product, DimensionConfig, ProductDimension
 from decimal import Decimal
 
 class ProductDimensionSerializer(serializers.ModelSerializer):
@@ -36,7 +36,7 @@ class CustomizeRequestSerializer(serializers.ModelSerializer):
         from .models import CustomizeRequest
         model = CustomizeRequest
         fields = ['id', 'product', 'product_name', 'name', 'email', 'phone', 'length', 'breadth', 'height', 'message', 'admin_note', 'status', 'created_at']
-        read_only_fields = ['created_at', 'product_name']
+        read_only_fields = ['created_at', 'product_name', 'status', 'admin_note']
     
     product_name = serializers.CharField(source='product.name', read_only=True)
         
