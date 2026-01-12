@@ -355,7 +355,7 @@
 
             <div style="margin-bottom: 16px;">
                 <label class="form-label">Your Name <span style="color: red">*</span></label>
-                <input type="text" id="reqName" class="form-input" required value="{{ request.user.first_name }} {{ request.user.last_name }}">
+                <input type="text" id="reqName" class="form-input" required value="{{ request.user.name|default:'' }}">
             </div>
 
             <div class="form-grid-2" style="margin-bottom: 16px;">
@@ -425,7 +425,11 @@
 
     // --- Modal Logic ---
     function openCustomModal() {
-        document.getElementById('customizeModal').style.display = 'flex';
+        {% if not request.user.is_authenticated %}
+            document.getElementById('loginRequiredModal').style.display = 'flex';
+        {% else %}
+            document.getElementById('customizeModal').style.display = 'flex';
+        {% endif %}
     }
 
     function closeCustomModal() {
@@ -551,4 +555,5 @@
         <button onclick="closeSuccessModal()" class="btn btn-primary" style="width: 100%;">Okay, Got it</button>
     </div>
 </div>
+{% include 'components/login_required_popup.html' %}
 {% endblock %}

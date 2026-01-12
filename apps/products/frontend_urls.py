@@ -1,5 +1,5 @@
 from django.urls import path
-from .frontend_views import ProductListFrontendView, ProductDetailFrontendView
+from .frontend_views import ProductListFrontendView, ProductDetailFrontendView, CustomizeRequestFrontendView
 
 urlpatterns = [
     path('', ProductListFrontendView.as_view(), name='product-list-frontend'),

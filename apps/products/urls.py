@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProductListView, ProductDetailView, CalculatePriceView, CustomizeRequestCreateView
+from .views import ProductListView, ProductDetailView, CalculatePriceView, CustomizeRequestCreateView, CustomerCustomizeRequestViewSet
 from .admin_views import AdminProductViewSet
 
 router = DefaultRouter()
@@ -17,4 +17,5 @@ urlpatterns = [
     path('products/slug/<slug:slug>', ProductDetailView.as_view(lookup_field='slug'), name='product-detail-slug'),
     path('products/<uuid:pk>/calculate-price', CalculatePriceView.as_view(), name='calculate-price'),
     path('products/customize-request', CustomizeRequestCreateView.as_view(), name='customize-request'),
+    path('customize-requests/', CustomerCustomizeRequestViewSet.as_view(), name='customer-customize-requests-list'),
 ]

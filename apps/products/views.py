@@ -68,11 +68,34 @@ from .serializers import CustomizeRequestSerializer
 
 class CustomizeRequestCreateView(generics.CreateAPIView):
     serializer_class = CustomizeRequestSerializer
-    permission_classes = [AllowAny] # Allow non-logged-in users too
-
+    permission_classes = [IsAuthenticated] # Require login
+    
     def perform_create(self, serializer):
-        # If user is logged in, attach them
-        if self.request.user.is_authenticated:
+        # Enforce Customer Role
+        if self.request.user.role != 'CUSTOMER':
+             from rest_framework.exceptions import PermissionDenied
+             raise PermissionDenied("Only customers can submit customization requests.")
+             
+        from django.db import transaction
+        with transaction.atomic():
+            # Save the request linked to user
             serializer.save(user=self.request.user)
-        else:
-            serializer.save()
+            
+            # Smart Save: Update profile name if missing
+            user = self.request.user
+            submitted_name = serializer.validated_data.get('name')
+            
+            if not user.name and submitted_name:
+                user.name = submitted_name
+                user.save(update_fields=['name'])
+
+class CustomerCustomizeRequestViewSet(generics.ListAPIView, generics.RetrieveAPIView):
+    """
+    Allow customers to view their own customization requests.
+    """
+    serializer_class = CustomizeRequestSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        from .models import CustomizeRequest
+        return CustomizeRequest.objects.filter(user=self.request.user).order_by('-created_at')

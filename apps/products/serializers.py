@@ -35,9 +35,17 @@ class CustomizeRequestSerializer(serializers.ModelSerializer):
     class Meta:
         from .models import CustomizeRequest
         model = CustomizeRequest
-        fields = ['product', 'name', 'email', 'phone', 'length', 'breadth', 'height', 'message']
+        fields = ['id', 'product', 'product_name', 'name', 'email', 'phone', 'length', 'breadth', 'height', 'message', 'admin_note', 'status', 'created_at']
+        read_only_fields = ['created_at', 'product_name']
     
+    product_name = serializers.CharField(source='product.name', read_only=True)
+        
     def validate(self, data):
-        if data['length'] <= 0 or data['breadth'] <= 0 or data['height'] <= 0:
-            raise serializers.ValidationError("Dimensions must be positive values.")
+        # Validate dimensions only if they are present in the request data
+        if 'length' in data and data['length'] <= 0:
+            raise serializers.ValidationError("Length must be positive.")
+        if 'breadth' in data and data['breadth'] <= 0:
+            raise serializers.ValidationError("Breadth must be positive.")
+        if 'height' in data and data['height'] <= 0:
+            raise serializers.ValidationError("Height must be positive.")
         return data

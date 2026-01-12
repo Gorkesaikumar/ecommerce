@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}Customize Requests | WoodCraft{% endblock %}
+
+{% block content %}
+<section class="section">
+    {% block extra_css %}
+    <style>
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            aside { display: none; }
+            #mobileAccountMenuBtn { display: block; } /* Re-use form dashboard logic if global, else copy */
+        }
+
+        .request-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-PENDING { background: #fff3e0; color: #e65100; }
+        .status-ACCEPTED { background: #e8f5e9; color: #2e7d32; }
+        .status-REJECTED { background: #ffebee; color: #c62828; }
+        .status-REVIEWED { background: #e3f2fd; color: #1565c0; }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+        }
+        .toast {
+            background: white;
+            border-left: 4px solid #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 16px;
+            border-radius: 4px;
+            margin-top: 10px;
+            min-width: 300px;
+            display: flex;
+            align-items: flex-start;
+            flex-direction: column;
+            animation: slideIn 0.3s ease-out;
+        }
+        .toast-header { font-weight: 600; margin-bottom: 4px; }
+        .toast-body { font-size: 14px; color: #555; }
+        .toast.accepted { border-color: #2e7d32; }
+        .toast.rejected { border-color: #c62828; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    /* Confetti Styles */
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: #f2d74e;
+        position: absolute;
+        top: 0;
+        animation: fall linear forwards;
+        z-index: 9999;
+    }
+    @keyframes fall {
+        to { transform: translateY(100vh) rotate(720deg); }
+    }
+    </style>
+    {% endblock %}
+
+    <!-- Mobile Account Menu Trigger (Simplified version of dashboard's) -->
+    <button id="mobileAccountMenuBtn" onclick="document.querySelector('aside').style.display = document.querySelector('aside').style.display === 'block' ? 'none' : 'block'" 
+        style="display: none; width: 100%; padding: 12px; background: #fdfbf7; border: 1px solid #eee; border-radius: 8px; text-align: left; font-weight: 600; margin-bottom: 24px; cursor: pointer;">
+        account Menu
+    </button>
+
+    <div class="dashboard-layout">
+        {% include 'customer/sidebar.html' %}
+
+        <main>
+            <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="font-family: var(--font-heading);">Customize Requests</h2>
+                    <p style="color: var(--text-secondary);">Track status of your custom dimension requests</p>
+                </div>
+                <button onclick="loadRequests()" style="padding: 8px 16px; background: transparent; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                    Refresh
+                </button>
+            </div>
+
+            <div id="requests-loading" style="display: none; text-align: center; padding: 40px;">
+                <p>Loading requests...</p>
+            </div>
+
+            <div id="requests-list">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div id="no-requests" style="display: none; text-align: center; padding: 40px; background: #f9f9f9; border-radius: 8px;">
+                <p>You haven't submitted any customization requests yet.</p>
+                <a href="/products" style="color: var(--primary-color); text-decoration: underline; margin-top: 8px; display: block;">Browse Products</a>
+            </div>
+        </main>
+    </div>
+    
+    <div id="toast-container"></div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRequests();
+        
+        // Mobile menu check
+        if (window.innerWidth <= 1024) {
+            document.getElementById('mobileAccountMenuBtn').style.display = 'block';
+        }
+    });
+
+    async function loadRequests() {
+        const loading = document.getElementById('requests-loading');
+        const list = document.getElementById('requests-list');
+        const empty = document.getElementById('no-requests');
+        
+        loading.style.display = 'block';
+        list.innerHTML = '';
+        empty.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/v1/customize-requests/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Session cookie is sent automatically by browser for same-origin
+                }
+            });
+
+            if (response.status === 401) {
+                // Only redirect if genuinely not authenticated
+                window.location.href = '/login?next=/account/customizations/';
+                return;
+            }
+
+            const data = await response.json();
+            const requests = Array.isArray(data) ? data : (data.results || []);
+            
+            // Check for status changes and notify
+            checkNotifications(requests);
+            
+            // Render
+            loading.style.display = 'none';
+            if (requests.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+
+            // Save current state for next comparison
+            saveRequestState(requests);
+
+            requests.forEach(req => {
+                const date = new Date(req.created_at).toLocaleDateString();
+                const card = document.createElement('div');
+                card.className = 'request-card';
+                
+                 let adminFeedback = '';
+                if (req.status === 'REJECTED' && req.admin_note) {
+                    adminFeedback = `<div style="margin-top: 12px; padding: 12px; background: #ffebee; border-radius: 4px; font-size: 14px;">
+                        <strong>Rejection Reason:</strong> ${req.admin_note}
+                    </div>`;
+                } else if (req.status === 'ACCEPTED' && req.admin_note) {
+                     adminFeedback = `<div style="margin-top: 12px; padding: 12px; background: #e8f5e9; border-radius: 4px; font-size: 14px;">
+                        <strong>Note:</strong> ${req.admin_note}
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="margin: 0; font-size: 16px;">${req.product_name} (${req.length}x${req.breadth}x${req.height})</h4>
+                        <span class="status-badge status-${req.status}">${req.status}</span>
+                    </div>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Product ID: ${req.product}</p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Submitted on: ${date}</p>
+                    <p style="font-size: 14px; margin-bottom: 8px;"><strong>Message:</strong> ${req.message || 'No message'}</p>
+                    ${adminFeedback}
+                `;
+                list.appendChild(card);
+            });
+
+        } catch (error) {
+            console.error('Error:', error);
+            loading.innerText = 'Failed to load requests.';
+        }
+    }
+
+    function saveRequestState(requests) {
+        const state = {};
+        requests.forEach(r => state[r.id] = r.status);
+        localStorage.setItem('customize_requests_state', JSON.stringify(state));
+    }
+
+    function triggerConfetti() {
+        const colors = ['#ffc107', '#4caf50', '#2196f3', '#e91e63'];
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+            confetti.style.opacity = Math.random();
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 4000);
+        }
+    }
+
+    function checkNotifications(newRequests) {
+        const savedStateStr = localStorage.getItem('customize_requests_state');
+        if (!savedStateStr) return; // First load, no notifications
+        
+        const savedState = JSON.parse(savedStateStr);
+        
+        newRequests.forEach(req => {
+            const oldStatus = savedState[req.id];
+            // If status changed and is final (Accepted/Rejected)
+            if (oldStatus && oldStatus !== req.status) {
+                if (req.status === 'ACCEPTED') {
+                    showToast('Request Accepted', `Your request for ${req.length}x${req.breadth}x${req.height} has been accepted!`, 'accepted');
+                    triggerConfetti(); // BLAST EFFECT
+                } else if (req.status === 'REJECTED') {
+                    showToast('Request Rejected', `Your request has been rejected. Reason: ${req.admin_note || 'N/A'}`, 'rejected');
+                }
+            }
+        });
+    }
+
+    function showToast(title, message, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-header">${title}</div>
+            <div class="toast-body">${message}</div>
+        `;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+</script>
+{% endblock %}

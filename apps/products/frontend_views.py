@@ -1,4 +1,4 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from .models import Product, Category
 from django.shortcuts import get_object_or_404
 import logging
@@ -85,3 +85,10 @@ class CollectionView(ProductListFrontendView):
             except Category.DoesNotExist:
                 context['page_title'] = slug.title()
         return context
+
+class CustomizeRequestFrontendView(TemplateView):
+    template_name = 'customer/customize-requests.html'
+    
+    def get(self, request, *args, **kwargs):
+        print(f"DEBUG: Accessed CustomizeRequestFrontendView with path: {request.path}")
+        return super().get(request, *args, **kwargs)

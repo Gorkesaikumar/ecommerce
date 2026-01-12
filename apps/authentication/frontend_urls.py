@@ -3,6 +3,7 @@ from .frontend_views import (
     LoginFrontendView, OTPVerifyFrontendView, LogoutView,
     DashboardFrontendView, ProfileFrontendView, AddressesFrontendView
 )
+from apps.products.frontend_views import CustomizeRequestFrontendView
 
 urlpatterns = [
     path('login/', LoginFrontendView.as_view(), name='login'),
