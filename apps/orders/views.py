@@ -197,7 +197,8 @@ class OrderViewSet(OrderCancellationMixin, viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [AllowAny()]
+            # Strict Checkout Security: Authentication Mandatory
+            return [IsAuthenticated()]
         if self.action in ['update', 'partial_update', 'destroy']:
             # Only Admin can update/delete arbitrary orders (CancellationMixin handles user cancel)
             from apps.products.admin_views import IsAdminUser
@@ -214,7 +215,15 @@ class OrderViewSet(OrderCancellationMixin, viewsets.ModelViewSet):
         """
         Checkout: Converts Cart -> Order
         """
-        # Determine user/guest
+        # RBAC Enforcement: Authenticated users only, and specifically CUSTOMER role
+        # Note: IsAuthenticated is already enforced by get_permissions, but we check role here.
+        if request.user.role != 'CUSTOMER':
+            return Response(
+                {"error": "Only registered customers can perform checkout."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Determine user/guest (Now only User)
         session_key = request.headers.get('X-Session-Key')
         
         # Use simple serializer for address or existing ID

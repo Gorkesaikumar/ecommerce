@@ -26,6 +26,10 @@ class CheckoutFrontendView(TemplateView):
     template_name = 'checkout.html'
 
     def dispatch(self, request, *args, **kwargs):
+        # Security: Prevent Guest Access to Checkout Page
+        if not request.user.is_authenticated:
+            return redirect('cart-frontend')
+
         # Validate Cart
         session_key = request.session.session_key
         cart = CartService.get_cart(request.user, session_key)

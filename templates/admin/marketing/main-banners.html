@@ -60,10 +60,7 @@
                 </td>
                 <td style="padding: 16px 24px; color: #666; font-size: 13px;">
                     {{ banner.redirect_url }}
-                    <div style="font-size: 11px; color: #999;">CTA: {{ banner.cta_text }}        </tbody>
-    </table>
-    </div>
-</div>
+                    <div style="font-size: 11px; color: #999;">CTA: {{ banner.cta_text }}</div>
                 </td>
                 <td style="padding: 16px 24px;">{{ banner.priority }}</td>
                 <td style="padding: 16px 24px;">
@@ -73,9 +70,11 @@
                     <span style="background: #f5f5f5; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Inactive</span>
                     {% endif %}
                 </td>
-                <td style="padding: 16px 24px; text-align: right;">
-                    <button onclick="openModal('{{ banner.id }}', '{{ banner.image_url|escapejs }}', '{{ banner.title|default:''|escapejs }}', '{{ banner.subtitle|default:''|escapejs }}', '{{ banner.cta_text|escapejs }}', '{{ banner.redirect_url|escapejs }}', '{{ banner.priority }}', '{{ banner.is_active|yesno:'true,false' }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px;">Edit</button>
-                    <button onclick="openDeleteModal('{{ banner.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                <td style="padding: 16px 24px;">
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button onclick="openModal('{{ banner.id }}', '{{ banner.image_url|escapejs }}', '{{ banner.title|default:''|escapejs }}', '{{ banner.subtitle|default:''|escapejs }}', '{{ banner.cta_text|escapejs }}', '{{ banner.redirect_url|escapejs }}', '{{ banner.priority }}', '{{ banner.is_active|yesno:'true,false' }}')" class="btn-sm" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Edit</button>
+                        <button onclick="openDeleteModal('{{ banner.id }}')" class="btn-sm" style="background: #fee; border: 1px solid #fcc; color: #d32f2f; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;">Delete</button>
+                    </div>
                 </td>
             </tr>
             {% empty %}

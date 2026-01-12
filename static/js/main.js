@@ -289,28 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Mobile Menu ---
-    // --- Menu Toggle (Dropdown) ---
-    const menuBtn = document.querySelector('.menu-trigger');
-    const menuDropdown = document.getElementById('menuDropdown');
+    // --- Mobile Menu Logic is handled in base.html for responsive checks matches ---
 
-    if(menuBtn && menuDropdown) {
-        menuBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const isVisible = menuDropdown.style.display === 'block';
-            
-            // Close other overlays
-            if(searchOverlay) searchOverlay.style.display = 'none';
-            
-            menuDropdown.style.display = isVisible ? 'none' : 'block';
-        });
-
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            if(!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
-                menuDropdown.style.display = 'none';
-            }
-        });
-    }
 });

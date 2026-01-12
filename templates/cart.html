@@ -40,16 +40,25 @@
         display: flex;
         gap: 32px;
         align-items: flex-start;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
     
-    .cart-items { flex: 2; }
-    .cart-summary { flex: 1; min-width: 300px; }
-
-    @media (max-width: 768px) {
-        .cart-summary {
-            min-width: 0;
-            width: 100%;
-        }
+    .cart-items { 
+        flex: 2; 
+        min-width: 0; /* Critical for flex children text overflow */
+    }
+    
+    .cart-summary { 
+        flex: 1; 
+        min-width: 300px; 
+    }
+    
+    .table-container {
+        width: 100%;
+        overflow-x: auto; /* Allow internal scroll if strictly needed, preventing body scroll */
+        -webkit-overflow-scrolling: touch;
     }
 
     /* Responsive Logic */
@@ -59,15 +68,22 @@
         }
         .cart-summary {
             width: 100%;
+            min-width: 0;
+            margin-top: 24px;
         }
     }
 
     /* Mobile Table Card Transformation */
     @media (max-width: 768px) {
+        .cart-container {
+            gap: 20px;
+        }
+
         .premium-table thead { display: none; }
         .premium-table, .premium-table tbody, .premium-table tr, .premium-table td {
             display: block;
             width: 100%;
+            box-sizing: border-box;
         }
         .premium-table tr {
             margin-bottom: 16px;
@@ -76,6 +92,7 @@
             border-radius: 8px;
             padding: 16px;
             position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         .premium-table td {
             padding: 8px 0;
@@ -88,10 +105,11 @@
         /* Product Cell Special Handling */
         .premium-table td:first-child {
             border-bottom: 1px solid #eee;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             padding-bottom: 12px;
             text-align: left;
             justify-content: flex-start;
+            flex-wrap: wrap; /* Allow wrapping for very small screens */
         }
         .premium-table td:last-child {
             border-bottom: none;
@@ -105,11 +123,22 @@
         .premium-table td:nth-child(2)::before { content: "Price"; font-weight: 500; color: #666; }
         .premium-table td:nth-child(3)::before { content: "Qty"; font-weight: 500; color: #666; }
         .premium-table td:nth-child(4)::before { content: "Total"; font-weight: 500; color: #666; }
+        
+        .product-thumb {
+            width: 80px; 
+            height: 80px;
+        }
     }
 
     /* Standard Product Cell Styling */
     .product-cell { display: flex; align-items: center; gap: 16px; }
     .product-thumb { width: 60px; height: 60px; background: #f8f8f8; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+    
+    /* Ensure images don't overflow */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
 </style>
 {% endblock %}
 
@@ -210,7 +239,7 @@
                 <span>Total</span>
                 <span>₹{{ cart.total_price }}</span>
             </div>
-            <a href="/checkout" class="btn btn-checkout-action" style="display: block; text-align: center;">Proceed to Checkout</a>
+            <button onclick="checkLoginAndProceed()" class="btn btn-checkout-action" style="display: block; width: 100%; text-align: center; border: none; cursor: pointer; font-size: 16px; font-family: inherit;">Proceed to Checkout</button>
             <a href="/products/" style="display: block; text-align: center; margin-top: 16px; font-size: 14px; text-decoration: underline;">Continue Shopping</a>
         </div>
     </div>
@@ -230,6 +259,24 @@
         <div style="display: flex; gap: 12px; justify-content: center;">
             <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
             <button id="confirmDeleteBtn" class="btn btn-primary" style="background: #d32f2f; border-color: #d32f2f;">Remove</button>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div id="loginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 32px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;">
+        <div style="margin-bottom: 20px;">
+            <div style="width: 60px; height: 60px; background: #e3f2fd; color: #1565c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 24px;">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+        </div>
+        <h3 style="margin-bottom: 12px; font-family: var(--font-heading);">Login Required</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5;">Please log in to your account to proceed with checkout securely.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <a href="/login/?next=/checkout/" class="btn btn-primary" style="text-decoration: none;">Log In to Continue</a>
+            <button onclick="closeLoginModal()" class="btn btn-secondary" style="background: transparent; border: 1px solid #ddd;">Cancel</button>
         </div>
     </div>
 </div>
@@ -412,6 +459,25 @@
             btn.innerText = originalText;
             btn.disabled = false;
         }
+    });
+
+    function checkLoginAndProceed() {
+        // Check if user is authenticated using Django template tag
+        const isAuthenticated = "{{ request.user.is_authenticated|yesno:'true,false' }}" === "true";
+        if (isAuthenticated) {
+            window.location.href = '/checkout/';
+        } else {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+    }
+
+    function closeLoginModal() {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+
+    // Close on outside click for login modal too
+    document.getElementById('loginModal').addEventListener('click', (e) => {
+        if(e.target === document.getElementById('loginModal')) closeLoginModal();
     });
 
     // Close on outside click
