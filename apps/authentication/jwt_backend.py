@@ -34,7 +34,9 @@ class BlacklistCheckingJWTAuthentication(JWTAuthentication):
         if header is None:
             # Fallback to Cookie (Customer Isolation Strategy)
             # CRITICAL: Do NOT use cookie for Admin paths (Admin uses Session)
-            if request.path.startswith('/admin') or request.path.startswith('/api/v1/admin'):
+            # This ensures that if a user is logged in as Customer (JWT) and Admin (Session),
+            # the Admin APIs use the Session auth instead of the limited Customer JWT.
+            if request.path.startswith('/admin') or '/admin/' in request.path:
                 return None
             
             raw_token = request.COOKIES.get('access_token')

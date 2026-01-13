@@ -35,6 +35,10 @@ class Order(models.Model):
     guest_phone = models.CharField(max_length=15, null=True, blank=True, help_text="Phone for guest orders")
     payment_method = models.CharField(max_length=10, choices=PaymentMethod.choices, default=PaymentMethod.ONLINE)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    
+    # Idempotency: Track last status that triggered SMS notification
+    last_notified_status = models.CharField(max_length=20, null=True, blank=True, help_text="Last status for which SMS was sent")
+    
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.JSONField(help_text="Snapshot of address at time of order")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -42,6 +46,13 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.id} - {self.status}"
+    
+    @property
+    def customer_mobile(self):
+        """Get customer mobile number for SMS notifications."""
+        if self.user:
+            return self.user.mobile_number
+        return self.guest_phone
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

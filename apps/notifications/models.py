@@ -51,8 +51,19 @@ class NotificationLog(models.Model):
     type = models.CharField(max_length=10)
     event = models.CharField(max_length=50)
     
-    status = models.CharField(max_length=20, choices=[('SENT', 'Sent'), ('FAILED', 'Failed'), ('QUEUED', 'Queued')])
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SENT', 'Sent'),
+        ('FAILED', 'Failed'),
+        ('QUEUED', 'Queued'),
+        ('RETRYING', 'Retrying')
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     error_message = models.TextField(blank=True)
+    
+    # SMS-specific fields
+    provider_response = models.JSONField(null=True, blank=True, help_text="MSG91 or other provider response")
+    retry_count = models.IntegerField(default=0)
     
     content = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)

@@ -48,9 +48,18 @@ class OTPService:
         else:
             cache.incr(rate_key)
 
-        # OTP should be sent via SMS gateway in production
-        # For development, check Redis directly or use test mode
-        logger.info(f"OTP generated for {mobile_number}: {otp}")
+        # Send OTP via SMS (MSG91)
+        # Send OTP via SMS (MSG91) - ASYNC
+        try:
+            from apps.core.tasks import send_otp_sms_async
+            # Use Celery task to send SMS in background
+            send_otp_sms_async.delay(mobile_number, otp)
+            
+        except Exception as e:
+            logger.error(f"Failed to enqueue OTP task for {mobile_number}: {e}")
+            # Continue even if enqueue fails (unlikely with Redis)
+
+        logger.info(f"OTP generated for {mobile_number}")
         return otp
 
     @staticmethod
@@ -60,11 +69,27 @@ class OTPService:
         
         if not stored_hash:
             return False
-            
+        
+        # Brute-force protection: Track verification attempts
+        attempts_key = f"ecom:auth:verify_attempts:{mobile_number}"
+        attempts = cache.get(attempts_key, 0)
+        
+        if attempts >= 3:
+            logger.warning(f"OTP verification locked for {mobile_number} - too many attempts")
+            return False
+        
         hashed_input = OTPService._hash_otp(otp)
         
         if stored_hash == hashed_input:
-            cache.delete(cache_key) # Single use
-            # Clear rate limit on success? Optional. Keeping it prevents spam.
+            cache.delete(cache_key)  # Single use
+            cache.delete(attempts_key)  # Clear attempts on success
             return True
-        return False
+        else:
+            # Increment failed attempts
+            if attempts == 0:
+                cache.set(attempts_key, 1, timeout=600)  # 10 minutes lockout window
+            else:
+                cache.incr(attempts_key)
+            
+            logger.warning(f"OTP verification failed for {mobile_number}. Attempts: {attempts + 1}/3")
+            return False

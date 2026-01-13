@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SendOTPView(APIView):
+    authentication_classes = []  # Disable auth checks to prevent 401 on stale cookies
     permission_classes = [AllowAny]
     throttle_scope = 'otp'
 
@@ -30,6 +31,7 @@ class SendOTPView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTPView(APIView):
+    authentication_classes = []  # Disable auth checks
     permission_classes = [AllowAny]
 
     def post(self, request):

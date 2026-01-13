@@ -43,6 +43,7 @@ class PublicPopupListView(generics.ListAPIView):
     """
     Public Read-Only Popups
     """
+    authentication_classes = []  # Disable auth checks
     permission_classes = [permissions.AllowAny]
     serializer_class = PopupSerializer
     

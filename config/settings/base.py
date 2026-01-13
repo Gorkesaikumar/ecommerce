@@ -30,6 +30,16 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='rzp_test_placeholder')
 RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='secret_placeholder')
 
+# MSG91 SMS Provider Configuration
+SMS_ENABLED = env.bool('SMS_ENABLED', default=False)  # Feature flag
+SMS_PROVIDER = env('SMS_PROVIDER', default='MSG91')
+MSG91_AUTH_KEY = env('MSG91_AUTH_KEY', default='')
+MSG91_SENDER_ID = env('MSG91_SENDER_ID', default='ECOMM')
+MSG91_OTP_TEMPLATE_ID = env('MSG91_OTP_TEMPLATE_ID', default='')
+
+# Frontend URL for order tracking links in SMS
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:8000')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -193,7 +203,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
         'user': '1000/day',
-        'otp': '3/min', # Custom scope for OTP
+        'otp': '3/min',  # Custom scope for OTP
+        'admin_notifications': '10/hour',  # Admin can send 10 notifications per hour
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -245,4 +256,69 @@ SIMPLE_JWT = {
     # Token types
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
+}
+
+# =============================
+# CELERY CONFIGURATION
+# =============================
+
+# Celery Broker and Result Backend (Redis)
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/2')
+
+# Serialization (JSON only for security)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+# Task result expiration (7 days)
+CELERY_RESULT_EXPIRES = 60 * 60 * 24 * 7
+
+# Task routing (dedicated SMS queue)
+CELERY_TASK_ROUTES = {
+    'apps.core.tasks.send_sms_async': {'queue': 'sms'},
+    'apps.core.tasks.send_otp_sms_async': {'queue': 'sms'},
+}
+
+# Reliability settings
+CELERY_TASK_ACKS_LATE = True  # Acknowledge tasks after completion (prevents task loss)
+CELERY_TASK_REJECT_ON_WORKER_LOST = True  # Requeue tasks if worker crashes
+
+# =============================
+# LOGGING CONFIGURATION
+# =============================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'apps': {  # Your local apps
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'apps.core.services': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'celery': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
 }

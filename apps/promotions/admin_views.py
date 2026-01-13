@@ -8,7 +8,10 @@ from apps.core.models import AuditLog
 
 class IsAdminUser(IsAuthenticated):
     def has_permission(self, request, view):
-        return super().has_permission(request, view) and request.user.role == 'ADMIN'
+        has_auth = super().has_permission(request, view)
+        print(f"DEBUG: Permission Check | User: {request.user} | Auth: {has_auth} | Superuser: {getattr(request.user, 'is_superuser', False)} | Path: {request.path}")
+        # Allow if role is ADMIN *OR* is_superuser
+        return has_auth and (request.user.role == 'ADMIN' or request.user.is_superuser)
 
 class BaseMarketingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]

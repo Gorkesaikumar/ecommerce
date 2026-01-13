@@ -146,7 +146,325 @@
     }
 </style>
 
-<!-- Hero Removed -->
+<!-- Hero Carousel (Main Banner) -->
+{% if main_banners %}
+<section class="hero-carousel-container">
+    <div class="hero-track-wrapper">
+        <div class="hero-track" id="heroTrack">
+            {% for banner in main_banners %}
+            <div class="hero-slide">
+                <div class="hero-image-wrapper">
+                    {% if banner.image_url %}
+                    <img src="{{ banner.image_url }}" alt="{{ banner.title }}" class="hero-img">
+                    {% else %}
+                    <!-- Fallback if no image -->
+                    <div style="width:100%; height:100%; background:#ddd;"></div>
+                    {% endif %}
+                    
+                    <div class="hero-overlay">
+                        <div class="hero-content">
+                            {% if banner.subtitle %}
+                            <span class="hero-subtitle">{{ banner.subtitle }}</span>
+                            {% endif %}
+                            
+                            {% if banner.title %}
+                            <h2 class="hero-title">{{ banner.title }}</h2>
+                            {% endif %}
+                            
+                            {% if banner.cta_text and banner.redirect_url %}
+                            <div class="hero-cta-group">
+                                <a href="{{ banner.redirect_url }}" class="btn btn-primary hero-btn">
+                                    {{ banner.cta_text }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    {% if main_banners|length > 1 %}
+    <button class="hero-nav prev" id="heroPrev"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="hero-nav next" id="heroNext"><i class="fa-solid fa-chevron-right"></i></button>
+    
+    <div class="hero-dots" id="heroDots">
+        {% for banner in main_banners %}
+        <button class="hero-dot {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}"></button>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+<style>
+/* --- HERO CAROUSEL STYLES --- */
+.hero-carousel-container {
+    position: relative;
+    width: 100%;
+    /* Full screen minus header approximately, or fixed height premium feel */
+    height: 600px; 
+    overflow: hidden;
+    margin-bottom: 60px;
+    background: #000; /* Placeholder bg */
+}
+
+@media (max-width: 1024px) { .hero-carousel-container { height: 500px; } }
+@media (max-width: 768px) { .hero-carousel-container { height: 400px; margin-bottom: 40px; } }
+@media (max-width: 480px) { .hero-carousel-container { height: 450px; /* Taller on mobile for text visibility? Or shorter? Standard is usually sqaure-ish */ } }
+
+.hero-track-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.hero-track {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.hero-slide {
+    flex: 0 0 100%;
+    height: 100%;
+    position: relative;
+}
+
+.hero-image-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Overlay Gradients */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    /* Darker gradient for text readability matches premium aesthetic */
+    background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%);
+    display: flex;
+    align-items: center;
+    padding-left: var(--spacing-xl); /* 96px */
+}
+
+@media (max-width: 768px) {
+    .hero-overlay {
+        padding-left: 24px;
+        padding-right: 24px;
+        background: rgba(0,0,0,0.4); /* Full overlay on mobile */
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+.hero-content {
+    color: white;
+    max-width: 600px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease 0.3s;
+}
+
+.hero-slide.active-view .hero-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-subtitle {
+    display: block;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+}
+
+.hero-title {
+    font-family: var(--font-heading, 'Playfair Display', serif);
+    font-size: 56px;
+    line-height: 1.1;
+    margin-bottom: 32px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+    .hero-title { font-size: 36px; margin-bottom: 24px; }
+}
+
+.hero-btn {
+    border-color: white;
+    background: white;
+    color: #1a1a1a;
+    padding: 16px 32px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.hero-btn:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* Navigation */
+.hero-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    transition: all 0.3s;
+    z-index: 10;
+}
+.hero-nav:hover {
+    background: white;
+    color: black;
+}
+.hero-nav.prev { left: 32px; }
+.hero-nav.next { right: 32px; }
+
+@media (max-width: 768px) { .hero-nav { display: none; } }
+
+.hero-dots {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+}
+.hero-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.0);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.hero-dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const track = document.getElementById('heroTrack');
+    if (!track) return;
+    
+    const slides = Array.from(track.children);
+    if (slides.length === 0) return;
+
+    // If only 1 slide, hide nav
+    if (slides.length === 1) {
+        slides[0].classList.add('active-view');
+        return;
+    }
+
+    const nextBtn = document.getElementById('heroNext');
+    const prevBtn = document.getElementById('heroPrev');
+    const dots = Array.from(document.querySelectorAll('.hero-dot'));
+    
+    let currentIndex = 0;
+    let autoPlayTimer;
+    const intervalTime = 6000; // Slower for hero
+
+    // Simple Slide Logic (No infinite clone for simplicity if few slides, or add generic slider logic)
+    // Let's use simple index-based sliding without clones for robustness first, unless requested otherwise.
+    // Actually, "Seamless" usually implies infinite. I'll stick to simple transition for reliability as "Production Ready" 
+    // unless the rigorous infinite loop is needed. The Promo slider uses clones. 
+    // Let's implement Index-Based Loop (Jump to start).
+
+    function updateSlide(index) {
+        track.style.transform = `translateX(-${index * 100}%)`;
+        
+        // Active View styling
+        slides.forEach(s => s.classList.remove('active-view'));
+        if (slides[index]) slides[index].classList.add('active-view');
+        
+        // Dots
+        dots.forEach(d => d.classList.remove('active'));
+        if (dots[index]) dots[index].classList.add('active');
+        
+        currentIndex = index;
+    }
+
+    function nextSlide() {
+        let newIndex = currentIndex + 1;
+        if (newIndex >= slides.length) newIndex = 0;
+        updateSlide(newIndex);
+    }
+
+    function prevSlide() {
+        let newIndex = currentIndex - 1;
+        if (newIndex < 0) newIndex = slides.length - 1;
+        updateSlide(newIndex);
+    }
+
+    // Init
+    updateSlide(0);
+    startAutoPlay();
+
+    function startAutoPlay() {
+        stopAutoPlay();
+        autoPlayTimer = setInterval(nextSlide, intervalTime);
+    }
+
+    function stopAutoPlay() {
+        clearInterval(autoPlayTimer);
+    }
+
+    if (nextBtn) nextBtn.addEventListener('click', () => { nextSlide(); startAutoPlay(); });
+    if (prevBtn) prevBtn.addEventListener('click', () => { prevSlide(); startAutoPlay(); });
+
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+            updateSlide(i);
+            startAutoPlay();
+        });
+    });
+    
+    // Swipe
+    let touchStartX = 0;
+    const container = document.querySelector('.hero-carousel-container');
+    
+    container.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+        stopAutoPlay();
+    }, {passive: true});
+    
+    container.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].screenX;
+        if (touchEndX < touchStartX - 50) nextSlide();
+        if (touchEndX > touchStartX + 50) prevSlide();
+        startAutoPlay();
+    }, {passive: true});
+});
+</script>
+{% endif %}
 
 <!-- Promotions Carousel (Premium Infinite Slider) -->
 {% if promotions %}

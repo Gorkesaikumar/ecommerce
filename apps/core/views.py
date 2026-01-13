@@ -21,9 +21,11 @@ class HomeView(TemplateView):
         from apps.promotions.models import ScrollBanner, MainBanner, Promotion
         
         context['scroll_banner'] = ScrollBanner.objects.filter(is_active=True, is_deleted=False).order_by('-priority').first()
-        context['main_banner'] = MainBanner.objects.filter(is_active=True, is_deleted=False).order_by('-priority').first()
-        context['scroll_banner'] = ScrollBanner.objects.filter(is_active=True, is_deleted=False).order_by('-priority').first()
-        context['main_banner'] = MainBanner.objects.filter(is_active=True, is_deleted=False).order_by('-priority').first()
+        
+        # Main Banners (Hero Carousel)
+        main_banners = MainBanner.objects.filter(is_active=True, is_deleted=False).order_by('-priority')
+        context['main_banners'] = main_banners
+        context['main_banner'] = main_banners.first() # Fallback/Mid-page banner uses this
         context['promotions'] = Promotion.objects.filter(is_active=True, is_deleted=False).order_by('-priority')
         
         return context

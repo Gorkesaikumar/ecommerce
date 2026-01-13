@@ -23,9 +23,17 @@ SKIP_LOCATION_CHECK = True
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
+            "level": "INFO",
         },
     },
     "root": {
@@ -33,18 +41,37 @@ LOGGING = {
         "level": "INFO",
     },
     "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "apps": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
         },
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "apps.core.services": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        }
     },
 }
 
-# Override Redis Cache for local development
+# Use Redis Cache for local development (Since we have Redis running for Celery)
+# This ensures OTPs verify correctly across processes
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env('REDIS_URL', default="redis://localhost:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
