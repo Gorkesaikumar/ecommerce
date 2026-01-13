@@ -21,7 +21,10 @@ class OTPVerifyFrontendView(TemplateView):
 class LogoutView(TemplateView):
     def get(self, request):
         logout(request)
-        return redirect('home')
+        response = redirect('home')
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+        return response
 
 class DashboardFrontendView(TemplateView):
     template_name = 'customer/customer-dashboard.html'

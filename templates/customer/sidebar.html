@@ -16,7 +16,7 @@
             <a href="{% url 'product-customizations' %}" style="color: {% if 'customizations' in request.path %}var(--text-primary){% else %}var(--text-secondary){% endif %}; font-weight: {% if 'customizations' in request.path %}600{% else %}400{% endif %}; display: block; padding: 8px;">Customize Requests</a>
         </li>
         <li style="border-top: 1px solid #eee; padding-top: 16px;">
-            <a href="/logout" style="color: #d32f2f; font-size: 14px; padding: 8px; display: block;">Logout</a>
+            <a href="{% url 'logout' %}" style="color: #d32f2f; font-size: 14px; padding: 8px; display: block;">Logout</a>
         </li>
     </ul>
 </aside>

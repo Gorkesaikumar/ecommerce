@@ -8,9 +8,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from rest_framework.throttling import ScopedRateThrottle
+
 class SendOTPView(APIView):
     authentication_classes = []  # Disable auth checks to prevent 401 on stale cookies
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'otp'
 
     def post(self, request):

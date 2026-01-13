@@ -201,9 +201,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
+        'anon': '1000/day',
         'user': '1000/day',
-        'otp': '3/min',  # Custom scope for OTP
+        'otp': '20/min',  # Custom scope for OTP (Relaxed for Dev)
         'admin_notifications': '10/hour',  # Admin can send 10 notifications per hour
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

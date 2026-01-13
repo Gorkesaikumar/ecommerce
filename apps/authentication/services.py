@@ -27,7 +27,7 @@ class OTPService:
         rate_key = OTPService.get_rate_limit_key(mobile_number)
         attempts = cache.get(rate_key, 0)
         
-        if attempts >= 3:
+        if attempts >= 10:
             logger.warning(f"OTP Rate Limit Reached for {mobile_number}")
             raise Exception("Too many OTP requests. Please wait 10 minutes.")
         
